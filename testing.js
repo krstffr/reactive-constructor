@@ -4,6 +4,38 @@ var defVal = 'SEK';
 
 if (Meteor.isClient) {
 
+  TempClass = function ( initData ) {
+    
+    this.initData = initData;
+
+    this.init = function () {
+      this.initReactiveValues();
+    };
+
+    this.init();
+
+  };
+
+  TempClass = ReactiveClass( TempClass, {
+    itemName: String,
+    units: Number,
+    unitPrice: Number,
+    unitDescription: String,
+    tax: Number,
+    taxDescription: String
+  });
+
+  tempItem = new TempClass({
+    itemName: 'Default item',
+    units: 35,
+    unitPrice: 700,
+    unitDescription: 'hours',
+    tax: 25,
+    taxDescription: 'moms'
+  });
+
+  console.log(tempItem);
+
   InvoceListItem = function ( options ) {
 
     this.reactiveData = new ReactiveVar( options );
