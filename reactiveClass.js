@@ -1,7 +1,7 @@
 if (Meteor.isServer)
 	return false;
 
-ReactiveClass = function ( passedClass, optionsStructure ) {
+ReactiveClass = function( passedClass, optionsStructure ) {
 
 	passedClass.prototype.reactiveData = new ReactiveVar( optionsStructure );
 

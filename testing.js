@@ -1,22 +1,22 @@
 var throttleTime = 800;
-var defKey = 'currency';
-var defVal = 'SEK';
 
 if (Meteor.isClient) {
 
   InvoceListItem = function ( initData ) {
+
+    var that = this;
     
-    this.initData = initData;
+    that.initData = initData;
 
-    this.endPrice = function ( context ) {
-      return this.getReactiveValue('units') * this.getReactiveValue('unitPrice');
+    that.endPrice = function ( context ) {
+      return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
     };
 
-    this.priceAfterTax = function () {
-      return this.endPrice() * (( this.getReactiveValue('tax') / 100)+1);
+    that.priceAfterTax = function () {
+      return that.endPrice() * (( that.getReactiveValue('tax') / 100)+1);
     };
 
-    this.initReactiveValues();
+    that.initReactiveValues();
     
   };
 
@@ -29,23 +29,11 @@ if (Meteor.isClient) {
     taxDescription: String
   });
 
-  Invoice = function( defValue ) {
+  Invoice = function( initData ) {
 
     var that = this;
 
-    that.something = 1;
-
-    that.reactiveData = new ReactiveVar({ something: 1 });
-
-    that.setValue = function ( key, value ) {
-      var newVal = that.reactiveData.get();
-      newVal[ key ] = value;
-      return that.reactiveData.set( newVal );
-    };
-
-    that.getValue = function ( key ) {
-      return that.reactiveData.get()[key];
-    };
+    that.initData = initData;
 
     // Invoice items
     that.items = {};
@@ -63,16 +51,19 @@ if (Meteor.isClient) {
 
     that.items.addItem = function ( itemOptions ) {
 
-      var items = that.getValue( that.items.key ) || [];
+      var items = that.getReactiveValue( that.items.key ) || [];
+      
       items.push( new InvoceListItem( itemOptions ) );
 
-      return that.setValue(that.items.key, items );
+      console.log(items);
+
+      return that.setReactiveValue( that.items.key, items );
 
     };
 
     that.items.getTotal = function ( key ) {
       
-      var items = that.getValue(that.items.key);
+      var items = that.getReactiveValue( that.items.key );
 
       return _.reduce(items, function( memo, item ){
         if (typeof item[key] === 'function')
@@ -82,21 +73,20 @@ if (Meteor.isClient) {
 
     };
 
-    that.init = function () {
-
-      console.log('init by setting something to: "' + defValue + '"');
-      that.setValue('something', defValue );
-
-      that.setValue(defKey, defValue );
-
-      console.log('adding an item as well!');
-      that.items.addItem( that.items.defaultItem );
-
-    }();
+    that.initReactiveValues();
+    that.items.addItem( that.items.defaultItem );
 
   };
 
-  invoice1 = new Invoice( defVal );
+  Invoice = ReactiveClass( Invoice, {
+    currency: String,
+    items: Array
+  });
+
+  invoice1 = new Invoice({
+    currency: 'SEK',
+    items: []
+  });
 
   Template.invoiceTestTemplate.helpers({
     invoice: function () {
@@ -110,10 +100,10 @@ if (Meteor.isClient) {
       this.setReactiveValue('tax', this.getReactiveValue('tax')+1 );
     },
     'click button': function () {
-      invoice1.setValue('something', invoice1.getValue('something').split("").reverse().join("") );
+      invoice1.setReactiveValue('currency', invoice1.getReactiveValue('currency').split("").reverse().join("") );
     },
     'keyup input': _.throttle(function ( e ) {
-      invoice1.setValue('something', $(e.currentTarget).val() );
+      invoice1.setReactiveValue('currency', $(e.currentTarget).val() );
     }, throttleTime )
   });
 

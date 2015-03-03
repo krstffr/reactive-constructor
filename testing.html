@@ -14,18 +14,18 @@
 
 	  <button>Reverse that shit</button>
 
-	  <input type="text" value="{{ getValue 'something' }}">
+	  <input type="text" value="{{ getReactiveValue 'something' }}">
 
-  	<h1>{{ getValue 'something' }}</h1>
+  	<h1>Currency: {{ getReactiveValue 'currency' }}</h1>
 
   	<ul>
 
-	  	{{#each getValue 'items' }}
+	  	{{#each getReactiveValue 'items' }}
 
 	  		<li>
 	  			<span class="change-val">{{ getReactiveValue 'itemName' }}, </span>
 	  			{{ getReactiveValue 'units' }} {{ getReactiveValue 'unitDescription' }} 
-	  			@ {{  getReactiveValue 'unitPrice' }} {{ ../getValue 'currency' }}
+	  			@ {{ getReactiveValue 'unitPrice' }} {{ ../getReactiveValue 'currency' }}
 	  			= {{ endPrice }} 
 	  			({{ priceAfterTax }} after {{ getReactiveValue 'tax' }}% 
 	  			{{ getReactiveValue 'taxDescription' }})
@@ -33,8 +33,14 @@
 
 	  	{{/each}}
 
-	  	<p>Total price: {{ items.getTotal 'endPrice' }} {{ getValue 'currency' }}</p>
-	  	<p>with taxes: {{ items.getTotal 'priceAfterTax' }} {{ getValue 'currency' }}</p>
+	  	<p>
+	  		Total price: {{ items.getTotal 'endPrice' }} 
+	  		{{ getReactiveValue 'currency' }}
+	  	</p>
+	  	<p>
+	  		with taxes: {{ items.getTotal 'priceAfterTax' }} 
+	  		{{ getReactiveValue 'currency' }}
+	  	</p>
 
 		</ul>
 
