@@ -3,8 +3,6 @@ if (Meteor.isServer)
 
 ReactiveClass = function( passedClass, optionsStructure ) {
 
-	passedClass.prototype.reactiveData = new ReactiveVar( optionsStructure );
-
 	passedClass.prototype.setReactiveValue = function ( key, value ) {
 		
 		var newVal = this.reactiveData.get();
@@ -37,7 +35,7 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	};
 
 	passedClass.prototype.initReactiveValues = function () {
-		this.reactiveData.set( this.initData );
+		this.reactiveData = new ReactiveVar( this.initData );
 		if (!this.checkReactiveValues())
 			throw new Meteor.Error("reactiveData-wrong-structure", "Error");
 		return true;
