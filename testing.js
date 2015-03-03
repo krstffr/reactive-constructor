@@ -4,19 +4,23 @@ var defVal = 'SEK';
 
 if (Meteor.isClient) {
 
-  TempClass = function ( initData ) {
+  InvoceListItem = function ( initData ) {
     
     this.initData = initData;
 
-    this.init = function () {
-      this.initReactiveValues();
+    this.endPrice = function ( context ) {
+      return this.getReactiveValue('units') * this.getReactiveValue('unitPrice');
     };
 
-    this.init();
+    this.priceAfterTax = function () {
+      return this.endPrice() * (( this.getReactiveValue('tax') / 100)+1);
+    };
 
+    this.initReactiveValues();
+    
   };
 
-  TempClass = ReactiveClass( TempClass, {
+  InvoceListItem = ReactiveClass( InvoceListItem, {
     itemName: String,
     units: Number,
     unitPrice: Number,
@@ -24,63 +28,6 @@ if (Meteor.isClient) {
     tax: Number,
     taxDescription: String
   });
-
-  tempItem = new TempClass({
-    itemName: 'Default item',
-    units: 35,
-    unitPrice: 700,
-    unitDescription: 'hours',
-    tax: 25,
-    taxDescription: 'moms'
-  });
-
-  console.log(tempItem);
-
-  InvoceListItem = function ( options ) {
-
-    this.reactiveData = new ReactiveVar( options );
-
-    this.setValue = function ( key, value ) {
-      var newVal = this.reactiveData.get();
-      newVal[ key ] = value;
-      this.reactiveData.set( newVal );
-      return this.checkValues();
-    };
-
-    this.getValue = function ( key ) {
-      return this.reactiveData.get()[key];
-    };
-
-    this.endPrice = function ( context ) {
-      return this.getValue('units') * this.getValue('unitPrice');
-    };
-
-    this.priceAfterTax = function () {
-      return this.endPrice() * (( this.getValue('tax') / 100)+1);
-    };
-
-    this.checkValues = function () {
-
-      check(this.reactiveData.get(), {
-        itemName: String,
-        units: Number,
-        unitPrice: Number,
-        unitDescription: String,
-        tax: Number,
-        taxDescription: String
-      });
-
-      check( this.priceAfterTax(), Number );
-
-      check( this.endPrice(), Number );
-
-      return true;
-
-    };
-
-    this.checkValues();
-    
-  };
 
   Invoice = function( defValue ) {
 
@@ -159,8 +106,8 @@ if (Meteor.isClient) {
 
   Template.invoiceTestTemplate.events({
     'click .change-val': function () {
-      this.setValue('itemName', this.getValue('itemName') + '_X' );
-      this.setValue('tax', this.getValue('tax')+1 );
+      this.setReactiveValue('itemName', this.getReactiveValue('itemName') + '_X' );
+      this.setReactiveValue('tax', this.getReactiveValue('tax')+1 );
     },
     'click button': function () {
       invoice1.setValue('something', invoice1.getValue('something').split("").reverse().join("") );
