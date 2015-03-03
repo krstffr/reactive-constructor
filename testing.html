@@ -1,0 +1,41 @@
+<head>
+  <title>testing</title>
+</head>
+
+<body>
+
+  {{> invoiceTestTemplate }}
+
+</body>
+
+<template name="invoiceTestTemplate">
+
+	{{#with invoice }}
+
+	  <button>Reverse that shit</button>
+
+	  <input type="text" value="{{ getValue 'something' }}">
+
+  	<h1>{{ getValue 'something' }}</h1>
+
+  	<ul>
+
+	  	{{#each getValue 'items' }}
+
+	  		<li>
+	  			{{ itemName }}, 
+	  			{{ units }} {{ unitDescription }} 
+	  			@ {{ unitPrice }} {{ ../getValue 'currency' }}
+	  			= {{ endPrice }} ({{ priceAfterTax }} after {{ tax }}% {{ taxDescription }})
+	  		</li>
+
+	  	{{/each}}
+
+	  	<p>Total price: {{ items.getTotal 'endPrice' }} {{ getValue 'currency' }}</p>
+	  	<p>with taxes: {{ items.getTotal 'priceAfterTax' }} {{ getValue 'currency' }}</p>
+
+		</ul>
+
+  {{/with}}
+
+</template>
