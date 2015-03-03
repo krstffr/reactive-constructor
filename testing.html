@@ -23,10 +23,10 @@
 	  	{{#each getValue 'items' }}
 
 	  		<li>
-	  			{{ itemName }}, 
-	  			{{ units }} {{ unitDescription }} 
-	  			@ {{ unitPrice }} {{ ../getValue 'currency' }}
-	  			= {{ endPrice }} ({{ priceAfterTax }} after {{ tax }}% {{ taxDescription }})
+	  			<span class="change-val">{{ getValue 'itemName' }}, </span>
+	  			{{ getValue 'units' }} {{ getValue 'unitDescription' }} 
+	  			@ {{  getValue 'unitPrice' }} {{ ../getValue 'currency' }}
+	  			= {{ endPrice }} ({{ priceAfterTax }} after {{ getValue 'tax' }}% {{ getValue 'taxDescription' }})
 	  		</li>
 
 	  	{{/each}}

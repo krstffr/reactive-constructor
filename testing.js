@@ -4,22 +4,68 @@ var defVal = 'SEK';
 
 if (Meteor.isClient) {
 
+  InvoceListItem = function ( options ) {
+
+    this.reactiveData = new ReactiveVar( options );
+
+    this.setValue = function ( key, value ) {
+      var newVal = this.reactiveData.get();
+      newVal[ key ] = value;
+      this.reactiveData.set( newVal );
+      return this.checkValues();
+    };
+
+    this.getValue = function ( key ) {
+      return this.reactiveData.get()[key];
+    };
+
+    this.endPrice = function ( context ) {
+      return this.getValue('units') * this.getValue('unitPrice');
+    };
+
+    this.priceAfterTax = function () {
+      return this.endPrice() * (( this.getValue('tax') / 100)+1);
+    };
+
+    this.checkValues = function () {
+
+      check(this.reactiveData.get(), {
+        itemName: String,
+        units: Number,
+        unitPrice: Number,
+        unitDescription: String,
+        tax: Number,
+        taxDescription: String
+      });
+
+      check( this.priceAfterTax(), Number );
+
+      check( this.endPrice(), Number );
+
+      return true;
+
+    };
+
+    this.checkValues();
+    
+  };
+
   Invoice = function( defValue ) {
 
     var that = this;
 
     that.something = 1;
 
-    that.data = new ReactiveVar({ something: 1 });
+    that.reactiveData = new ReactiveVar({ something: 1 });
 
     that.setValue = function ( key, value ) {
-      var newVal = that.data.get();
+      var newVal = that.reactiveData.get();
       newVal[ key ] = value;
-      return that.data.set( newVal );
+      return that.reactiveData.set( newVal );
     };
 
     that.getValue = function ( key ) {
-      return that.data.get()[key];
+      return that.reactiveData.get()[key];
     };
 
     // Invoice items
@@ -36,32 +82,10 @@ if (Meteor.isClient) {
       taxDescription: 'moms'
     };
 
-    that.items.addItem = function ( item ) {
-
-      check(item, {
-        itemName: String,
-        units: Number,
-        unitPrice: Number,
-        unitDescription: String,
-        tax: Number,
-        taxDescription: String
-      });
-
-
-      item.endPrice = function () {
-        return this.units * this.unitPrice;
-      };
-      check( item.endPrice(), Number );
-
-
-      item.priceAfterTax = function () {
-        return this.endPrice() * ((this.tax / 100)+1);
-      };
-      check( item.priceAfterTax(), Number );
-
+    that.items.addItem = function ( itemOptions ) {
 
       var items = that.getValue( that.items.key ) || [];
-      items.push( item );
+      items.push( new InvoceListItem( itemOptions ) );
 
       return that.setValue(that.items.key, items );
 
@@ -102,6 +126,10 @@ if (Meteor.isClient) {
   });
 
   Template.invoiceTestTemplate.events({
+    'click .change-val': function () {
+      this.setValue('itemName', this.getValue('itemName') + '_X' );
+      this.setValue('tax', this.getValue('tax')+1 );
+    },
     'click button': function () {
       invoice1.setValue('something', invoice1.getValue('something').split("").reverse().join("") );
     },
