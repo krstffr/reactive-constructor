@@ -44,6 +44,24 @@
 
 		</ul>
 
+		{{#with getReactiveValue 'client' }}
+
+			<p><em>This is the client object from the invoice…</em></p>
+
+			<h1>{{ getReactiveValue 'clientName' }}</h1>
+
+		{{/with}}
+
+		<hr>
+
   {{/with}}
+
+  {{#with client }}
+
+  	<p><em>Just the client…</em></p>
+
+		<h1>{{ getReactiveValue 'clientName' }}</h1>
+
+	{{/with}}
 
 </template>

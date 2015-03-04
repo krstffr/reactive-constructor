@@ -2,6 +2,26 @@ var throttleTime = 800;
 
 if (Meteor.isClient) {
 
+  Client = function ( initData ) {
+
+    var that = this;
+    
+    that.initData = initData;
+
+    that.initReactiveValues();
+
+  };
+
+  Client = ReactiveClass( Client, {
+    clientName: String,
+    adress: Object
+  });
+
+  client = new Client({
+    clientName: 'String',
+    adress: {}
+  });
+
   InvoceListItem = function ( initData ) {
 
     var that = this;
@@ -50,27 +70,18 @@ if (Meteor.isClient) {
     };
 
     that.items.addItem = function ( itemOptions ) {
-
       var items = that.getReactiveValue( that.items.key ) || [];
-      
       items.push( new InvoceListItem( itemOptions ) );
-
-      console.log(items);
-
       return that.setReactiveValue( that.items.key, items );
-
     };
 
     that.items.getTotal = function ( key ) {
-      
       var items = that.getReactiveValue( that.items.key );
-
       return _.reduce(items, function( memo, item ){
         if (typeof item[key] === 'function')
           return memo + item[key]();
         return memo + item[key];
       }, 0);
-
     };
 
     that.initReactiveValues();
@@ -80,17 +91,22 @@ if (Meteor.isClient) {
 
   Invoice = ReactiveClass( Invoice, {
     currency: String,
-    items: Array
+    items: [InvoceListItem],
+    client: Client
   });
 
   invoice1 = new Invoice({
     currency: 'SEK',
-    items: []
+    items: [],
+    client: client
   });
 
   Template.invoiceTestTemplate.helpers({
     invoice: function () {
       return invoice1;
+    },
+    client: function () {
+      return client;
     }
   });
 
