@@ -148,8 +148,6 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	};
 
 	passedClass.prototype.initReactiveValues = function () {
-		// console.log('init object!', this.initData );
-		// console.log('prepared: ', this.prepareDataToCorrectTypes( this.initData ) );
 		this.reactiveData = new ReactiveVar( this.prepareDataToCorrectTypes( this.initData ) );
 		if (!this.checkReactiveValues())
 			throw new Meteor.Error("reactiveData-wrong-structure", "Error");
