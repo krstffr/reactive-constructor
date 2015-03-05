@@ -8,7 +8,55 @@
 
 </body>
 
+<template name="editTemplate__String">
+	
+	<label>{{ key }}</label>
+	<input type="text" value="{{ value }}">
+	
+</template>
+
+<template name="editTemplate__Collection">
+
+	{{#each value }}
+
+		{{> Template.dynamic template=getTemplateFromType }}
+
+	{{/each}}
+
+	<button class="temp-add-new-coll-item">
+		Add new {{ type }}
+	</button>
+
+</template>
+
+<template name="editTemplate">
+
+	<div class="wrap">
+
+		{{! Iterate over all the fields, get the corresponding field }}
+		{{#each getReactiveValuesAsArray }}
+
+			<div class="wrap">
+
+				<p><em>{{ key }}: {{ value }} | {{ type }}</em></p>
+
+				{{> Template.dynamic template=getTemplateFromType data=data }}
+
+			</div>
+
+		{{/each }}
+
+	</div>
+	
+</template>
+
 <template name="invoiceTestTemplate">
+
+	{{> editTemplate invoice }}
+
+	{{! > editTemplate client }}
+
+	<hr>
 
 	{{#with invoice }}
 
@@ -49,6 +97,7 @@
 			<p><em>This is the client object from the invoice…</em></p>
 
 			<h1>{{ getReactiveValue 'clientName' }}</h1>
+			<p>{{ getReactiveValue 'adressStreet' }}</p>
 
 		{{/with}}
 
@@ -61,6 +110,7 @@
   	<p><em>Just the client…</em></p>
 
 		<h1>{{ getReactiveValue 'clientName' }}</h1>
+		<p>{{ getReactiveValue 'adressStreet' }}</p>
 
 	{{/with}}
 

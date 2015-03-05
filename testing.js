@@ -1,132 +1,194 @@
+if (Meteor.isServer)
+  return false;
+
 var throttleTime = 800;
 
-if (Meteor.isClient) {
+Client = ReactiveClass( function Client( initData ) {
 
-  Client = function ( initData ) {
+  var that = this;
+  
+  that.initData = {};
 
-    var that = this;
-    
-    that.initData = initData;
-
-    that.initReactiveValues();
-
+  that.defaultData = {
+    clientName: '',
+    adressStreet: ''
   };
 
-  Client = ReactiveClass( Client, {
-    clientName: String,
-    adress: Object
-  });
+  _(that.initData).extend( that.defaultData, initData );
 
-  client = new Client({
-    clientName: 'String',
-    adress: {}
-  });
+  that.initReactiveValues();
 
-  InvoceListItem = function ( initData ) {
+}, {
+  clientName: String,
+  adressStreet: String
+});
 
-    var that = this;
-    
-    that.initData = initData;
+client = new Client({
+  clientName: 'A cool client',
+  adressStreet: 'Vikingagatan 19'
+});
 
-    that.endPrice = function ( context ) {
-      return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
-    };
+InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
 
-    that.priceAfterTax = function () {
-      return that.endPrice() * (( that.getReactiveValue('tax') / 100)+1);
-    };
+  var that = this;
+  
+  that.initData = {};
 
-    that.initReactiveValues();
-    
+  that.defaultData = {
+    itemName: '',
+    units: 0,
+    unitPrice: 0,
+    unitDescription: '',
+    tax: 25,
+    taxDescription: ''
   };
 
-  InvoceListItem = ReactiveClass( InvoceListItem, {
-    itemName: String,
-    units: Number,
-    unitPrice: Number,
-    unitDescription: String,
-    tax: Number,
-    taxDescription: String
-  });
+  _(that.initData).extend( that.defaultData, initData );
 
-  Invoice = function( initData ) {
-
-    var that = this;
-
-    that.initData = initData;
-
-    // Invoice items
-    that.items = {};
-
-    that.items.key = 'items';
-
-    that.items.defaultItem = {
-      itemName: 'Default item',
-      units: 35,
-      unitPrice: 700,
-      unitDescription: 'hours',
-      tax: 25,
-      taxDescription: 'moms'
-    };
-
-    that.items.addItem = function ( itemOptions ) {
-      var items = that.getReactiveValue( that.items.key ) || [];
-      items.push( new InvoceListItem( itemOptions ) );
-      return that.setReactiveValue( that.items.key, items );
-    };
-
-    that.items.getTotal = function ( key ) {
-      var items = that.getReactiveValue( that.items.key );
-      return _.reduce(items, function( memo, item ){
-        if (typeof item[key] === 'function')
-          return memo + item[key]();
-        return memo + item[key];
-      }, 0);
-    };
-
-    that.initReactiveValues();
-    that.items.addItem( that.items.defaultItem );
-
+  that.endPrice = function ( context ) {
+    return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
   };
 
-  Invoice = ReactiveClass( Invoice, {
-    currency: String,
-    items: [InvoceListItem],
-    client: Client
-  });
+  that.priceAfterTax = function () {
+    return that.endPrice() * (( that.getReactiveValue('tax') / 100)+1);
+  };
 
-  invoice1 = new Invoice({
+  that.initReactiveValues();
+  
+}, {
+  itemName: String,
+  units: Number,
+  unitPrice: Number,
+  unitDescription: String,
+  tax: Number,
+  taxDescription: String
+});
+
+Invoice = ReactiveClass(function Invoice ( initData ) {
+
+  var that = this;
+
+  that.initData = {};
+
+  that.defaultData = {
     currency: 'SEK',
-    items: [],
-    client: client
-  });
+    items: []
+  };
 
-  Template.invoiceTestTemplate.helpers({
-    invoice: function () {
-      return invoice1;
-    },
-    client: function () {
-      return client;
-    }
-  });
+  _(that.initData).extend( that.defaultData, initData );
 
-  Template.invoiceTestTemplate.events({
-    'click .change-val': function () {
-      this.setReactiveValue('itemName', this.getReactiveValue('itemName') + '_X' );
-      this.setReactiveValue('tax', this.getReactiveValue('tax')+1 );
-    },
-    'click button': function () {
-      invoice1.setReactiveValue('currency', invoice1.getReactiveValue('currency').split("").reverse().join("") );
-    },
-    'keyup input': _.throttle(function ( e ) {
-      invoice1.setReactiveValue('currency', $(e.currentTarget).val() );
-    }, throttleTime )
-  });
+  // Invoice items
+  that.items = {};
 
-}
+  that.items.key = 'items';
 
+  that.items.defaultItem = {
+    itemName: 'Default item',
+    units: 35,
+    unitPrice: 700,
+    unitDescription: 'hours',
+    tax: 25,
+    taxDescription: 'moms'
+  };
 
+  that.items.addItem = function ( itemOptions ) {
+    var items = that.getReactiveValue( that.items.key ) || [];
+    items.push( new InvoceListItem( itemOptions ) );
+    return that.setReactiveValue( that.items.key, items );
+  };
 
+  that.items.getTotal = function ( key ) {
+    var items = that.getReactiveValue( that.items.key );
+    return _.reduce(items, function( memo, item ){
+      if (typeof item[key] === 'function')
+        return memo + item[key]();
+      return memo + item[key];
+    }, 0);
+  };
+
+  that.initReactiveValues();
+  that.items.addItem( that.items.defaultItem );
+
+}, {
+  currency: String,
+  items: [InvoceListItem],
+  client: Client
+});
+
+invoice1 = new Invoice({
+  currency: 'SEK',
+  items: [],
+  client: client
+});
+
+Template.invoiceTestTemplate.helpers({
+  invoice: function () {
+    return invoice1;
+  },
+  client: function () {
+    return client;
+  }
+});
+
+Handlebars.registerHelper('getTemplateFromType', function () {
+
+  if (!this.type || !this.key)
+    return 'editTemplate';
+
+  // Is it a string? Return the basic template
+  if (this.type === 'String' || this.type === 'Number')
+    return 'editTemplate__String';
+
+  // Is it a collection of items?
+  if (this.type.search(/Collection_/g) > -1)
+    return 'editTemplate__Collection';
+
+  return 'editTemplate';
+
+});
+
+Template.editTemplate.helpers({
+  data: function () {
+    // The default values
+    if (this.type.search(/String|Number/g) > -1)
+      return this;
+    // Collections
+    if (this.type.search(/Collection_/g) > -1)
+      return this;
+    console.log('not a string/number or collection: ', this.type );
+    console.log('So: return the value instead!');
+    return this.value;
+  }
+});
+
+Template.editTemplate.events({
+  // Method for adding new items to a collection
+  'click .temp-add-new-coll-item': function ( e ) {
+    
+    e.stopImmediatePropagation();
+
+    var newItem = new window[this.type.replace(/Collection_/g, '')]();
+
+    var items = Template.currentData().getReactiveValue( this.key );
+    
+    items.push( newItem );
+
+    Template.currentData().setReactiveValue( this.key, items );
+
+  },
+  // Method for updating the value of a property on keyup!
+  'blur input': function ( e ) {
+    
+    e.stopImmediatePropagation();
+    var value = $(e.currentTarget).val();
+
+    if (this.type === 'Number')
+      value = parseFloat( value, 10 );
+
+    Template.currentData().setReactiveValue( this.key, value );
+
+  }
+});
 
 
 
