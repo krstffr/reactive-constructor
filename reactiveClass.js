@@ -1,9 +1,34 @@
 if (Meteor.isServer)
 	return false;
 
-ReactiveClass = function( passedClass, optionsStructure ) {
+ReactiveClass = function( passedClass, passedOptionsStructure ) {
 
 	var that = this;
+
+	// Make optionsStructure able to reference itself
+	// This is the actual holder for the optionsStructure (which needs a new name! TODO)
+	var optionsStructure = {};
+
+	// Iterate over all the passed options, and change ['self'] to [passedClass]
+	// to make the type refer to the passedClass
+	_(passedOptionsStructure).each( function( value, key ) {
+		
+		// If it's not an array, skip this
+		if (Match.test(value, Array) ) {
+			// Exchange any array values which might be 'self' to passedClass
+			value = _.map(value, function( arrayItem ){
+				if (arrayItem === 'self')
+					return passedClass;
+				return arrayItem;
+			});
+		}
+
+		// Add the value to the optionsStructure
+		optionsStructure[key] = value;
+
+	});
+
+	console.log( optionsStructure );
 
 	that.getTypeOfStructureItem = function ( item ) {
 		

@@ -72,7 +72,8 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
     invoiceName: 'KK000',
     currency: 'SEK',
     items: [],
-    client: new Client()
+    client: new Client(),
+    invoices: []
   };
 
   _(that.initData).extend( that.defaultData, initData );
@@ -104,12 +105,38 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
   invoiceName: String,
   currency: String,
   items: [InvoceListItem],
-  client: Client
+  client: Client,
+  invoices: ['self']
 });
 
 invoice1 = new Invoice();
 
+Person = ReactiveClass(function Person( initData ) {
+
+  var that = this;
+
+  that.initData = {};
+
+  that.defaultData = {
+    name: 'Kristoffer',
+    children: []
+  };
+
+  _(that.initData).extend( that.defaultData, initData );
+
+  that.initReactiveValues();
+
+}, {
+  name: String,
+  children: ['self']
+});
+
+person = new Person();
+
 Template.invoiceTestTemplate.helpers({
+  person: function () {
+    return person;
+  },
   invoice: function () {
     return invoice1;
   },
