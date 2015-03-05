@@ -38,7 +38,7 @@
 
 			<div class="wrap">
 
-				<p><em>{{ key }}: {{ value }} | {{ type }}</em></p>
+				<p><em>{{ key }} &lt;{{ type }}&gt;</em></p>
 
 				{{> Template.dynamic template=getTemplateFromType data=data }}
 
@@ -64,7 +64,7 @@
 
 	  <input type="text" value="{{ getReactiveValue 'something' }}">
 
-  	<h1>Currency: {{ getReactiveValue 'currency' }}</h1>
+  	<h1>Invoice {{ getReactiveValue 'invoiceName' }}</h1>
 
   	<ul>
 

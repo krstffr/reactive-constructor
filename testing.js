@@ -1,8 +1,6 @@
 if (Meteor.isServer)
   return false;
 
-var throttleTime = 800;
-
 Client = ReactiveClass( function Client( initData ) {
 
   var that = this;
@@ -24,7 +22,7 @@ Client = ReactiveClass( function Client( initData ) {
 });
 
 client = new Client({
-  clientName: 'A cool client',
+  clientName: 'FEW',
   adressStreet: 'Vikingagatan 19'
 });
 
@@ -37,10 +35,10 @@ InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
   that.defaultData = {
     itemName: '',
     units: 0,
-    unitPrice: 0,
-    unitDescription: '',
+    unitPrice: 700,
+    unitDescription: 'timmar',
     tax: 25,
-    taxDescription: ''
+    taxDescription: 'moms'
   };
 
   _(that.initData).extend( that.defaultData, initData );
@@ -71,8 +69,10 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
   that.initData = {};
 
   that.defaultData = {
+    invoiceName: 'KK000',
     currency: 'SEK',
-    items: []
+    items: [],
+    client: new Client()
   };
 
   _(that.initData).extend( that.defaultData, initData );
@@ -82,18 +82,9 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
 
   that.items.key = 'items';
 
-  that.items.defaultItem = {
-    itemName: 'Default item',
-    units: 35,
-    unitPrice: 700,
-    unitDescription: 'hours',
-    tax: 25,
-    taxDescription: 'moms'
-  };
-
   that.items.addItem = function ( itemOptions ) {
     var items = that.getReactiveValue( that.items.key ) || [];
-    items.push( new InvoceListItem( itemOptions ) );
+    items.push( new InvoceListItem() );
     return that.setReactiveValue( that.items.key, items );
   };
 
@@ -107,19 +98,16 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
   };
 
   that.initReactiveValues();
-  that.items.addItem( that.items.defaultItem );
+  that.items.addItem();
 
 }, {
+  invoiceName: String,
   currency: String,
   items: [InvoceListItem],
   client: Client
 });
 
-invoice1 = new Invoice({
-  currency: 'SEK',
-  items: [],
-  client: client
-});
+invoice1 = new Invoice();
 
 Template.invoiceTestTemplate.helpers({
   invoice: function () {
@@ -149,15 +137,18 @@ Handlebars.registerHelper('getTemplateFromType', function () {
 
 Template.editTemplate.helpers({
   data: function () {
-    // The default values
+    
+    // The default values should return the value of this
     if (this.type.search(/String|Number/g) > -1)
       return this;
-    // Collections
+    
+    // Collections should return the value of this
     if (this.type.search(/Collection_/g) > -1)
       return this;
-    console.log('not a string/number or collection: ', this.type );
-    console.log('So: return the value instead!');
+
+    // Else the "actual value" should be returned!
     return this.value;
+
   }
 });
 
