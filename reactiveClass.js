@@ -1,18 +1,15 @@
 if (Meteor.isServer)
 	return false;
 
-ReactiveClass = function( passedClass, passedOptionsStructure ) {
+ReactiveClass = function( passedClass, optionsStructure ) {
 
 	var that = this;
 
 	// Make optionsStructure able to reference itself
-	// This is the actual holder for the optionsStructure (which needs a new name! TODO)
-	var optionsStructure = {};
-
 	// Iterate over all the passed options, and change ['self'] to [passedClass]
 	// to make the type refer to the passedClass
-	_(passedOptionsStructure).each( function( value, key ) {
-		
+	optionsStructure = lodash.mapValues(optionsStructure, function ( value ) {
+
 		// If it's not an array, skip this
 		if (Match.test(value, Array) ) {
 			// Exchange any array values which might be 'self' to passedClass
@@ -24,11 +21,9 @@ ReactiveClass = function( passedClass, passedOptionsStructure ) {
 		}
 
 		// Add the value to the optionsStructure
-		optionsStructure[key] = value;
-
+		return value;
+		
 	});
-
-	console.log( optionsStructure );
 
 	that.getTypeOfStructureItem = function ( item ) {
 		
@@ -38,7 +33,7 @@ ReactiveClass = function( passedClass, passedOptionsStructure ) {
 			return item.name;
 
 		// Is it an array?
-		if ( item instanceof Array ) {
+		if ( Match.test( item, Array ) ) {
 			
 			// Does it have any items?
 			if (item.length > 1)
@@ -89,6 +84,33 @@ ReactiveClass = function( passedClass, passedOptionsStructure ) {
 	passedClass.prototype.checkReactiveValues = function () {
 		check(this.reactiveData.get(), optionsStructure );
 		return true;
+	};
+
+	// Method for returning the entire object as only the reactive
+	// data, with no nested types with methods and stuff.
+	passedClass.prototype.getDataAsObject = function () {
+
+		// Map over the reactive data object
+		return lodash.mapValues(this.reactiveData.get(), function ( value ) {
+
+			// Does the value have this method? Then it's "one of us"!
+			if ( Match.test( value.getDataAsObject, Function ) )
+				value = value.getDataAsObject();
+
+			// Is it an array of items?
+			if ( Match.test( value, Array ) ) {
+				value = _( value ).map( function( arrayVal ) {
+					if ( Match.test( arrayVal.getDataAsObject, Function ) )
+						return arrayVal.getDataAsObject();
+					return arrayVal;
+				});
+			}
+
+			// Return the value
+			return value;
+
+		});
+
 	};
 
 	passedClass.prototype.initReactiveValues = function () {
