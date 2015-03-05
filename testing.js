@@ -8,7 +8,7 @@ Client = ReactiveClass( function Client( initData ) {
   that.initData = {};
 
   that.defaultData = {
-    clientName: '',
+    clientName: 'New client',
     adressStreet: ''
   };
 
@@ -21,10 +21,7 @@ Client = ReactiveClass( function Client( initData ) {
   adressStreet: String
 });
 
-client = new Client({
-  clientName: 'FEW',
-  adressStreet: 'Vikingagatan 19'
-});
+client = new Client();
 
 InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
 
@@ -99,7 +96,6 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
   };
 
   that.initReactiveValues();
-  that.items.addItem();
 
 }, {
   invoiceName: String,
@@ -110,6 +106,8 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
 });
 
 invoice1 = new Invoice();
+
+invoices = new ReactiveVar( [ invoice1 ] );
 
 Person = ReactiveClass(function Person( initData ) {
 
@@ -135,13 +133,13 @@ person = new Person();
 
 Template.invoiceTestTemplate.helpers({
   person: function () {
-    return person;
+    // return person;
   },
   invoice: function () {
     return invoice1;
   },
-  client: function () {
-    return client;
+  invoices: function () {
+    return invoices.get();
   }
 });
 

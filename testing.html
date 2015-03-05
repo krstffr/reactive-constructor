@@ -58,7 +58,7 @@
 
 	<hr>
 
-	{{#with invoice }}
+	{{#each invoices }}
 
 	  <button>Reverse that shit</button>
 
@@ -103,15 +103,6 @@
 
 		<hr>
 
-  {{/with}}
-
-  {{#with client }}
-
-  	<p><em>Just the client…</em></p>
-
-		<h1>{{ getReactiveValue 'clientName' }}</h1>
-		<p>{{ getReactiveValue 'adressStreet' }}</p>
-
-	{{/with}}
+  {{/each}}
 
 </template>

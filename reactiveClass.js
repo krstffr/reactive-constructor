@@ -113,8 +113,44 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 
 	};
 
+	// Method for converting initData to correct data types
+	passedClass.prototype.prepareDataToCorrectTypes = function ( data ) {
+
+		var getValueAsType = function ( value, key ) {
+
+			// Check for normal types and just return those
+			if ( optionsStructure[key] && optionsStructure[key].name && optionsStructure[key].name.search(/String|Number/g) > -1)
+				return value;
+
+			// Is it an array?
+			// Iterate this method over every field
+			if ( Match.test( value, Array ) ) {
+				return _(value).map( function ( arrayVal, arrayKey ) {
+					// Is it a "plain" object? Then transform it into a non-plain
+					// from the type provided in the optionsStructure!
+					if ( Match.test( arrayVal, Object ) )
+						return new optionsStructure[ key ][ 0 ]( arrayVal );
+					return value;
+				});
+			}
+
+			// Is it a "plain" object? Then transform it into a non-plain
+			// from the type provided in the optionsStructure!
+			if ( Match.test( value, Object ) )
+				return new optionsStructure[key]( value );
+
+			return value;
+
+		};
+
+		return lodash.mapValues( data, getValueAsType );
+
+	};
+
 	passedClass.prototype.initReactiveValues = function () {
-		this.reactiveData = new ReactiveVar( this.initData );
+		// console.log('init object!', this.initData );
+		// console.log('prepared: ', this.prepareDataToCorrectTypes( this.initData ) );
+		this.reactiveData = new ReactiveVar( this.prepareDataToCorrectTypes( this.initData ) );
 		if (!this.checkReactiveValues())
 			throw new Meteor.Error("reactiveData-wrong-structure", "Error");
 		return true;
