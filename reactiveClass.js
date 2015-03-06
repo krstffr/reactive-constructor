@@ -148,8 +148,11 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 				return _(value).map( function ( arrayVal, arrayKey ) {
 					// Is it a "plain" object? Then transform it into a non-plain
 					// from the type provided in the optionsStructure!
-					if ( Match.test( arrayVal, Object ) )
-						return new that.getCurrentOptionsStructure()[ key ][ 0 ]( arrayVal );
+					if ( Match.test( arrayVal, Object ) ) {
+						console.log('yes', arrayVal );
+						return new window[ that.getCurrentOptionsStructure()[ key ][ 0 ].name ]( arrayVal );
+					}
+					console.log( value );
 					return value;
 				});
 			}
@@ -157,7 +160,7 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 			// Is it a "plain" object? Then transform it into a non-plain
 			// from the type provided in the optionsStructure!
 			if ( Match.test( value, Object ) )
-				return new that.getCurrentOptionsStructure()[key]( value );
+				return new window[ that.getCurrentOptionsStructure()[key].name ]( value );
 
 			return value;
 
@@ -168,6 +171,7 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	};
 
 	passedClass.prototype.setupInitValues = function ( initValues ) {
+		
 		// console.log( this.getCurrentOptionsStructure(), initValues );
 		var defaultValues = lodash.mapValues( this.getCurrentOptionsStructure(), function ( val ) {
 			

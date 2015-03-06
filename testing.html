@@ -54,6 +54,8 @@
 
 		{{/each }}
 
+		<button class="save">Save!</button>
+
 	</div>
 	
 </template>
@@ -70,9 +72,7 @@
 
 	{{#each invoices }}
 
-	  <button>Reverse that shit</button>
-
-	  <input type="text" value="{{ getReactiveValue 'something' }}">
+	  <button class="edit-invoice">Edit invoice</button>
 
   	<h1>Invoice {{ getReactiveValue 'invoiceName' }}</h1>
 

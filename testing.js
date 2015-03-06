@@ -1,3 +1,5 @@
+Invoices = new Meteor.Collection('invoices');
+
 if (Meteor.isServer)
   return false;
 
@@ -7,7 +9,7 @@ Person = ReactiveClass(function Person( initData, type ) {
 
   that.initData = initData || {};
 
-  that.type = type || 'child';
+  that.type = type || 'worker';
 
   that.initReactiveValues();
 
@@ -51,8 +53,6 @@ client.setReactiveValue('staff', [ person ] );
 InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
 
   var that = this;
-  
-  that.initData = initData || {};
 
   that.defaultData = {
     itemName: '',
@@ -63,7 +63,7 @@ InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
     taxDescription: 'moms'
   };
 
-  _(that.initData).extend( that.defaultData, initData );
+  that.initData = _( that.defaultData ).extend( initData || {} );
 
   that.endPrice = function ( context ) {
     return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
@@ -92,8 +92,6 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
 
   var that = this;
 
-  that.initData = {};
-
   that.defaultData = {
     invoiceName: 'KK000',
     currency: 'SEK',
@@ -102,7 +100,7 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
     invoices: []
   };
 
-  _(that.initData).extend( that.defaultData, initData );
+  that.initData = _( that.defaultData ).extend( initData || {} );
 
   // Invoice items
   that.items = {};
@@ -120,9 +118,16 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
     return (that.items.getTotal('tax') / that.items.getTotal('endPrice') * 100 || 0).toFixed(1);
   };
 
+  that.saveInvoice = function () {
+    var dataToSave = that.getDataAsObject();
+    console.log( dataToSave );
+    return Invoices.upsert( { _id: dataToSave._id }, dataToSave );
+  };
+
   that.initReactiveValues();
 
 }, {
+  _id: String,
   invoiceName: String,
   currency: String,
   items: [InvoceListItem],
@@ -188,7 +193,22 @@ Template.editTemplate.helpers({
   }
 });
 
+Template.invoiceTestTemplate.events({
+  'click .edit-invoice': function ( e, tmpl ) {
+    
+    e.stopImmediatePropagation();
+
+    console.log(this, tmpl, Template.body);
+
+    Blaze.renderWithData( Template.editTemplate, this, document.body );
+
+  }
+});
+
 Template.editTemplate.events({
+  'click .save': function () {
+    return this.saveInvoice();
+  },
   // Method for adding new items to a collection
   'click .temp-add-new-coll-item': function ( e ) {
 
