@@ -10,8 +10,10 @@
 
 <template name="editTemplate__String">
 	
-	<label>{{ key }}</label>
-	<input type="text" value="{{ value }}">
+	<label>
+		{{ key }}
+		<input type="text" value="{{ value }}">
+	</label>
 	
 </template>
 
@@ -33,12 +35,18 @@
 
 	<div class="wrap">
 
+		<h2>
+			{{ className }}{{#if type }},
+				type: <em>{{ type }}</em>
+			{{/if}}
+		</h2>
+
 		{{! Iterate over all the fields, get the corresponding field }}
 		{{#each getReactiveValuesAsArray }}
 
 			<div class="wrap">
 
-				<p><em>{{ key }} &lt;{{ type }}&gt;</em></p>
+				<h4>{{ key }} &lt;{{ type }}&gt;</h4>
 
 				{{> Template.dynamic template=getTemplateFromType data=data }}
 
@@ -88,8 +96,12 @@
 	  		{{ getReactiveValue 'currency' }}
 	  	</p>
 	  	<p>
-	  		with taxes: {{ items.getTotal 'priceAfterTax' }} 
+	  		Taxes: {{ items.getTotal 'priceAfterTax' }} 
 	  		{{ getReactiveValue 'currency' }}
+	  	</p>
+	  	<p>
+	  		Total taxes: {{ items.getTotal 'tax' }} 
+	  		{{ getReactiveValue 'currency' }} (@ {{ items.getTaxPercentage }}%)
 	  	</p>
 
 		</ul>

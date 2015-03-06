@@ -73,6 +73,10 @@ InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
     return that.endPrice() * (( that.getReactiveValue('tax') / 100)+1);
   };
 
+  that.tax = function () {
+    return that.priceAfterTax() - that.endPrice();
+  };
+
   that.initReactiveValues();
   
 }, {
@@ -103,21 +107,17 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
   // Invoice items
   that.items = {};
 
-  that.items.key = 'items';
-
-  that.items.addItem = function ( itemOptions ) {
-    var items = that.getReactiveValue( that.items.key ) || [];
-    items.push( new InvoceListItem() );
-    return that.setReactiveValue( that.items.key, items );
-  };
-
   that.items.getTotal = function ( key ) {
-    var items = that.getReactiveValue( that.items.key );
+    var items = that.getReactiveValue( 'items' );
     return _.reduce(items, function( memo, item ){
       if (typeof item[key] === 'function')
         return memo + item[key]();
       return memo + item[key];
     }, 0);
+  };
+
+  that.items.getTaxPercentage = function () {
+    return (that.items.getTotal('tax') / that.items.getTotal('endPrice') * 100 || 0).toFixed(1);
   };
 
   that.initReactiveValues();
@@ -182,6 +182,9 @@ Template.editTemplate.helpers({
     // Else the "actual value" should be returned!
     return this.value;
 
+  },
+  className: function () {
+    return this.constructor.name;
   }
 });
 
