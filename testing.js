@@ -5,24 +5,9 @@ Person = ReactiveClass(function Person( initData, type ) {
 
   var that = this;
 
-  that.initData = {};
+  that.initData = initData || {};
 
   that.type = type || 'child';
-
-  if (that.type === 'worker') {
-    that.defaultData = {
-      name: 'Kristoffer',
-      children: []
-    };
-  }
-  if (that.type === 'child') {
-    that.defaultData = {
-      age: 15,
-      parents: []
-    };
-  }
-
-  _(that.initData).extend( that.defaultData, initData );
 
   that.initReactiveValues();
 
@@ -30,6 +15,7 @@ Person = ReactiveClass(function Person( initData, type ) {
   type: 'worker',
   fields: {
     name: String,
+    title: String,
     children: ['self']
   }
 }, {
@@ -48,15 +34,7 @@ Client = ReactiveClass( function Client( initData ) {
 
   var that = this;
   
-  that.initData = {};
-
-  that.defaultData = {
-    clientName: 'New client',
-    adressStreet: '',
-    staff: []
-  };
-
-  _(that.initData).extend( that.defaultData, initData );
+  that.initData = initData || {};
 
   that.initReactiveValues();
 
@@ -74,7 +52,7 @@ InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
 
   var that = this;
   
-  that.initData = {};
+  that.initData = initData || {};
 
   that.defaultData = {
     itemName: '',

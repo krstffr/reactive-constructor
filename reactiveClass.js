@@ -168,7 +168,23 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	};
 
 	passedClass.prototype.setupInitValues = function ( initValues ) {
-		return initValues;
+		// console.log( this.getCurrentOptionsStructure(), initValues );
+		var defaultValues = lodash.mapValues( this.getCurrentOptionsStructure(), function ( val ) {
+			
+			if ( Match.test( val, Array ) )
+				return [];
+			
+			var initVal = new val();
+			
+			if ( Match.test( initVal.valueOf, Function ) )
+				return initVal.valueOf();
+
+			return initVal;
+
+		});
+
+		return _(defaultValues).extend( initValues );
+
 	};
 
 	passedClass.prototype.initReactiveValues = function () {
@@ -182,7 +198,9 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 		if ( Match.test( optionsStructure, Object ) )
 			optionsStructure = that.setupOptionsStructure( optionsStructure );
 
-		this.reactiveData = new ReactiveVar( this.prepareDataToCorrectTypes( this.initData ) );
+		var initData = this.setupInitValues( this.initData );
+
+		this.reactiveData = new ReactiveVar( this.prepareDataToCorrectTypes( initData ) );
 
 		if (!this.checkReactiveValues())
 			throw new Meteor.Error("reactiveData-wrong-structure", "Error");
