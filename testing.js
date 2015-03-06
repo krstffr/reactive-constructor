@@ -120,7 +120,6 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
 
   that.saveInvoice = function () {
     var dataToSave = that.getDataAsObject();
-    console.log( dataToSave );
     return Invoices.upsert( { _id: dataToSave._id }, dataToSave );
   };
 
@@ -197,8 +196,6 @@ Template.invoiceTestTemplate.events({
   'click .edit-invoice': function ( e, tmpl ) {
     
     e.stopImmediatePropagation();
-
-    console.log(this, tmpl, Template.body);
 
     Blaze.renderWithData( Template.editTemplate, this, document.body );
 
