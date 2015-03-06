@@ -8,22 +8,34 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	// Make optionsStructure able to reference itself
 	// Iterate over all the passed options, and change ['self'] to [passedClass]
 	// to make the type refer to the passedClass
-	optionsStructure = lodash.mapValues(optionsStructure, function ( value ) {
+	that.setupOptionsStructure = function ( passedOptionsStructure ) {
 
-		// If it's not an array, skip this
-		if (Match.test(value, Array) ) {
-			// Exchange any array values which might be 'self' to passedClass
-			value = _.map(value, function( arrayItem ){
-				if (arrayItem === 'self')
-					return passedClass;
-				return arrayItem;
-			});
-		}
+		var structure = passedOptionsStructure.fields || passedOptionsStructure;
 
-		// Add the value to the optionsStructure
-		return value;
-		
-	});
+		return lodash.mapValues(structure, function ( value ) {
+
+			// If it's not an array, skip this
+			if (Match.test(value, Array) ) {
+				// Exchange any array values which might be 'self' to passedClass
+				value = _.map(value, function( arrayItem ){
+					if (arrayItem === 'self')
+						return passedClass;
+					return arrayItem;
+				});
+			}
+
+			// Add the value to the optionsStructure
+			return value;
+			
+		});
+
+	};
+
+	passedClass.prototype.getCurrentOptionsStructure = function () {
+		if ( this.type )
+			return _(optionsStructure).findWhere({ type: this.type }).fields;
+		return optionsStructure;
+	};
 
 	that.getTypeOfStructureItem = function ( item ) {
 		
@@ -63,6 +75,7 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	};
 
 	passedClass.prototype.getReactiveValuesAsArray = function () {
+		var optionsStructure = this.getCurrentOptionsStructure();
 		return _( this.reactiveData.get() ).map( function( value, key, list ) {
 			return {
 				key: key,
@@ -77,13 +90,18 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	};
 
 	passedClass.prototype.checkReactiveValue = function ( key, value ) {
-		check(value, optionsStructure[key]);
+		check(value, this.getCurrentOptionsStructure()[key]);
 		return true;
 	};
 
+
+
 	passedClass.prototype.checkReactiveValues = function () {
-		check(this.reactiveData.get(), optionsStructure );
+
+		check(this.reactiveData.get(), this.getCurrentOptionsStructure() );
+
 		return true;
+
 	};
 
 	// Method for returning the entire object as only the reactive
@@ -116,10 +134,12 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	// Method for converting initData to correct data types
 	passedClass.prototype.prepareDataToCorrectTypes = function ( data ) {
 
+		var that = this;
+
 		var getValueAsType = function ( value, key ) {
 
 			// Check for normal types and just return those
-			if ( optionsStructure[key] && optionsStructure[key].name && optionsStructure[key].name.search(/String|Number/g) > -1)
+			if ( that.getCurrentOptionsStructure()[key] && that.getCurrentOptionsStructure()[key].name && that.getCurrentOptionsStructure()[key].name.search(/String|Number/g) > -1)
 				return value;
 
 			// Is it an array?
@@ -129,7 +149,7 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 					// Is it a "plain" object? Then transform it into a non-plain
 					// from the type provided in the optionsStructure!
 					if ( Match.test( arrayVal, Object ) )
-						return new optionsStructure[ key ][ 0 ]( arrayVal );
+						return new that.getCurrentOptionsStructure()[ key ][ 0 ]( arrayVal );
 					return value;
 				});
 			}
@@ -137,7 +157,7 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 			// Is it a "plain" object? Then transform it into a non-plain
 			// from the type provided in the optionsStructure!
 			if ( Match.test( value, Object ) )
-				return new optionsStructure[key]( value );
+				return new that.getCurrentOptionsStructure()[key]( value );
 
 			return value;
 
@@ -147,11 +167,28 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 
 	};
 
+	passedClass.prototype.setupInitValues = function ( initValues ) {
+		return initValues;
+	};
+
 	passedClass.prototype.initReactiveValues = function () {
+
+		if ( Match.test( optionsStructure, Array ) ) {
+			optionsStructure = _( optionsStructure ).map(function ( val ) {
+				val.fields = that.setupOptionsStructure( val.fields );
+				return val;
+			});
+		}
+		if ( Match.test( optionsStructure, Object ) )
+			optionsStructure = that.setupOptionsStructure( optionsStructure );
+
 		this.reactiveData = new ReactiveVar( this.prepareDataToCorrectTypes( this.initData ) );
+
 		if (!this.checkReactiveValues())
 			throw new Meteor.Error("reactiveData-wrong-structure", "Error");
+
 		return true;
+
 	};
 	
 	return passedClass;

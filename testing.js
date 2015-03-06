@@ -1,27 +1,48 @@
 if (Meteor.isServer)
   return false;
 
-Person = ReactiveClass(function Person( initData ) {
+Person = ReactiveClass(function Person( initData, type ) {
 
   var that = this;
 
   that.initData = {};
 
-  that.defaultData = {
-    name: 'Kristoffer',
-    children: []
-  };
+  that.type = type || 'child';
+
+  if (that.type === 'worker') {
+    that.defaultData = {
+      name: 'Kristoffer',
+      children: []
+    };
+  }
+  if (that.type === 'child') {
+    that.defaultData = {
+      age: 15,
+      parents: []
+    };
+  }
 
   _(that.initData).extend( that.defaultData, initData );
 
   that.initReactiveValues();
 
+}, [{
+  type: 'worker',
+  fields: {
+    name: String,
+    children: ['self']
+  }
 }, {
-  name: String,
-  children: ['self']
-});
+  type: 'child',
+  fields: {
+    age: Number,
+    parents: ['self']
+  }
+}
+]);
 
-person = new Person();
+person = new Person({ name: 'Stoffe K' }, 'worker');
+person2 = new Person({}, 'child');
 
 Client = ReactiveClass( function Client( initData ) {
 
@@ -171,7 +192,7 @@ Handlebars.registerHelper('getTemplateFromType', function () {
 
 Template.editTemplate.helpers({
   data: function () {
-    
+
     // The default values should return the value of this
     if (this.type.search(/String|Number/g) > -1)
       return this;
@@ -189,7 +210,7 @@ Template.editTemplate.helpers({
 Template.editTemplate.events({
   // Method for adding new items to a collection
   'click .temp-add-new-coll-item': function ( e ) {
-    
+
     e.stopImmediatePropagation();
 
     var newItem = new window[this.type.replace(/Collection_/g, '')]();
@@ -203,7 +224,7 @@ Template.editTemplate.events({
   },
   // Method for updating the value of a property on keyup!
   'blur input': function ( e ) {
-    
+
     e.stopImmediatePropagation();
     var value = $(e.currentTarget).val();
 
