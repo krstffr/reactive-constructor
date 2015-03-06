@@ -1,6 +1,28 @@
 if (Meteor.isServer)
   return false;
 
+Person = ReactiveClass(function Person( initData ) {
+
+  var that = this;
+
+  that.initData = {};
+
+  that.defaultData = {
+    name: 'Kristoffer',
+    children: []
+  };
+
+  _(that.initData).extend( that.defaultData, initData );
+
+  that.initReactiveValues();
+
+}, {
+  name: String,
+  children: ['self']
+});
+
+person = new Person();
+
 Client = ReactiveClass( function Client( initData ) {
 
   var that = this;
@@ -9,7 +31,8 @@ Client = ReactiveClass( function Client( initData ) {
 
   that.defaultData = {
     clientName: 'New client',
-    adressStreet: ''
+    adressStreet: '',
+    staff: []
   };
 
   _(that.initData).extend( that.defaultData, initData );
@@ -18,10 +41,13 @@ Client = ReactiveClass( function Client( initData ) {
 
 }, {
   clientName: String,
-  adressStreet: String
+  adressStreet: String,
+  staff: [Person]
 });
 
 client = new Client();
+
+client.setReactiveValue('staff', [ person ] );
 
 InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
 
@@ -107,36 +133,19 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
 
 invoice1 = new Invoice();
 
+invoice1.setReactiveValue('client', client );
+
 invoices = new ReactiveVar( [ invoice1 ] );
-
-Person = ReactiveClass(function Person( initData ) {
-
-  var that = this;
-
-  that.initData = {};
-
-  that.defaultData = {
-    name: 'Kristoffer',
-    children: []
-  };
-
-  _(that.initData).extend( that.defaultData, initData );
-
-  that.initReactiveValues();
-
-}, {
-  name: String,
-  children: ['self']
-});
-
-person = new Person();
 
 Template.invoiceTestTemplate.helpers({
   person: function () {
-    // return person;
+    return person;
   },
   invoice: function () {
     return invoice1;
+  },
+  client: function () {
+    return client;
   },
   invoices: function () {
     return invoices.get();
