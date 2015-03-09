@@ -1,7 +1,4 @@
-if (Meteor.isServer)
-	return false;
-
-ReactiveClass = function( passedClass ) {
+ReactiveConstructor = function( passedClass ) {
 
 	var that = this;
 
@@ -243,7 +240,7 @@ ReactiveClass = function( passedClass ) {
 		return (this.type) ? this.type : this.typeStructure[0].type;
 	};
 
-	// Method for initiating the reactiveClass.
+	// Method for initiating the ReactiveConstructor.
 	passedClass.prototype.initReactiveValues = function () {
 
 		// Make the ['self'] field work, meaning that a field set to
