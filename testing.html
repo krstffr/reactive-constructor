@@ -17,6 +17,18 @@
 	
 </template>
 
+<template name="editTemplate__Boolean">
+
+	<label>
+		BOOL: {{ key }}
+		<select class="TEMP-bool-select">
+				<option value="true" selected="{{#if equals value true }}selected{{/if}}">True</option>
+				<option value="false" selected="{{#if equals value false }}selected{{/if}}">False</option>
+		</select>
+	</label>
+
+</template>
+
 <template name="editTemplate__Collection">
 
 	{{#each value }}
@@ -114,6 +126,10 @@
 			<p>{{ getReactiveValue 'adressStreet' }}</p>
 
 		{{/with}}
+
+		{{#if getReactiveValue 'superCool' }}
+			<p>Super cool!! C O N F I R M E D</p>
+		{{/if}}
 
 		<hr>
 

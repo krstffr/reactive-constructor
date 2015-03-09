@@ -32,6 +32,8 @@ Person = ReactiveClass(function Person( type, initData ) {
 
 person = new Person('worker', { name: 'Stoffe K' });
 person2 = new Person('child', {});
+person2 = new Person('child', { age: 50 });
+person2 = new Person('worker');
 
 Client = ReactiveClass( function Client( type, initData ) {
 
@@ -62,15 +64,6 @@ InvoceListItem = ReactiveClass(function InvoceListItem ( type, initData ) {
 
   var that = this;
 
-  that.defaultData = {
-    itemName: '',
-    units: 0,
-    unitPrice: 700,
-    unitDescription: 'timmar',
-    tax: 25,
-    taxDescription: 'moms'
-  };
-
   that.typeStructure = [{
     type: 'invoiceListItem',
     fields: {
@@ -80,12 +73,18 @@ InvoceListItem = ReactiveClass(function InvoceListItem ( type, initData ) {
       unitDescription: String,
       tax: Number,
       taxDescription: String
+    },
+    defaultData: {
+      itemName: '',
+      units: 0,
+      unitPrice: 700,
+      unitDescription: 'timmar',
+      tax: 25,
+      taxDescription: 'moms'
     }
   }];
 
   that.type = type || 'invoiceListItem';
-
-  that.initData = _( that.defaultData ).extend( initData || {} );
 
   that.endPrice = function ( context ) {
     return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
@@ -103,17 +102,13 @@ InvoceListItem = ReactiveClass(function InvoceListItem ( type, initData ) {
   
 });
 
+var testInvoiceListItem = new InvoceListItem('invoiceListItem', { tax: 30 });
+
 Invoice = ReactiveClass(function Invoice ( type, initData ) {
 
   var that = this;
 
-  that.defaultData = {
-    invoiceName: 'KK000',
-    currency: 'SEK',
-    items: [],
-    client: new Client(),
-    invoices: []
-  };
+  that.initData = initData;
 
   that.typeStructure = [{
     type: 'invoice',
@@ -123,13 +118,21 @@ Invoice = ReactiveClass(function Invoice ( type, initData ) {
       currency: String,
       items: [InvoceListItem],
       client: Client,
-      invoices: ['self']
+      invoices: ['self'],
+      // TODO: Make this work!
+      childInvoice: 'self',
+      superCool: Boolean
+    },
+    defaultData: {
+      invoiceName: 'KK000',
+      items: [],
+      client: new Client(),
+      invoices: [],
+      superCool: false
     }
   }];
 
-  that.type = type || 'invoice';
-
-  that.initData = _( that.defaultData ).extend( initData || {} );
+  // that.type = type || 'invoice';
 
   // Invoice items
   that.items = {};
@@ -156,7 +159,7 @@ Invoice = ReactiveClass(function Invoice ( type, initData ) {
 
 });
 
-invoice1 = new Invoice('invoice');
+invoice1 = new Invoice('invoice', { invoiceName: 'KK666' });
 
 invoice1.setReactiveValue('client', client );
 
@@ -186,6 +189,10 @@ Handlebars.registerHelper('getTemplateFromType', function () {
   if (this.type === 'String' || this.type === 'Number')
     return 'editTemplate__String';
 
+  // Is it a boolean?
+  if (this.type === 'Boolean')
+    return 'editTemplate__Boolean';
+
   // Is it a collection of items?
   if (this.type.search(/Collection_/g) > -1)
     return 'editTemplate__Collection';
@@ -194,11 +201,15 @@ Handlebars.registerHelper('getTemplateFromType', function () {
 
 });
 
+Handlebars.registerHelper('equals', function(a, b) {
+  return a === b;
+});
+
 Template.editTemplate.helpers({
   data: function () {
 
     // The default values should return the value of this
-    if (this.type.search(/String|Number/g) > -1)
+    if (this.type.search(/String|Number|Boolean/g) > -1)
       return this;
     
     // Collections should return the value of this
@@ -252,6 +263,16 @@ Template.editTemplate.events({
       value = parseFloat( value, 10 );
 
     Template.currentData().setReactiveValue( this.key, value );
+
+  },
+  // Method for boolean values
+  'change .TEMP-bool-select': function ( e ) {
+
+    e.stopImmediatePropagation();
+    
+    var value = $(e.currentTarget).val();
+    
+    Template.currentData().setReactiveValue( this.key, value === 'true' );
 
   }
 });
