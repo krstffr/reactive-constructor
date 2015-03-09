@@ -21,6 +21,21 @@ Person = ReactiveClass(function Person( type, initData ) {
     fields: {
       age: Number,
       parents: ['self']
+    },
+    methods: {
+      isTeenager: function () {
+        var age = this.getReactiveValue('age');
+        return age > 12 && age < 20;
+      },
+      getAgePlus: function ( years ) {
+        check( years, Number );
+        return this.getReactiveValue('age') + years;
+      },
+      addYears: function ( years ) {
+        check( years, Number );
+        var age = this.getReactiveValue('age');
+        return this.setReactiveValue('age', age + years );
+      }
     }
   }];
 
@@ -31,9 +46,17 @@ Person = ReactiveClass(function Person( type, initData ) {
 });
 
 person = new Person('worker', { name: 'Stoffe K' });
-person2 = new Person('child', {});
-person2 = new Person('child', { age: 50 });
-person2 = new Person('worker');
+
+person2 = new Person('child', { age: 17 });
+console.log( 'Person2 is now ' + person2.getAgePlus(0) + ' and will be: ' + person2.getAgePlus( 3 ) + ' in three years!' );
+console.log( 'Person2 is a teenager: ' + person2.isTeenager() );
+console.log( 'Person2 ages six years and is now: ' + person2.addYears( 6 ) );
+console.log( 'Person2 is a teenager after the six years? ' + person2.isTeenager() );
+
+console.log( 'Person1 should not have a isTeenager method! typeof is: ' + typeof person.isTeenager );
+
+person3 = new Person('child', { age: 50 });
+person4 = new Person('worker');
 
 Client = ReactiveClass( function Client( type, initData ) {
 

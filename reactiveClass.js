@@ -68,6 +68,19 @@ ReactiveClass = function( passedClass ) {
 
 	};
 
+	// Method for adding the methods passed from the passed typeStructure object
+	// to the type object.
+	that.setupTypeMethods = function ( reactiveObject ) {
+		_.each(reactiveObject.getCurrentTypeMethods(), function( method, methodName ){
+			reactiveObject[ methodName ] = method;
+		});
+	};
+
+	// Method for getting all custom methods of this 
+	passedClass.prototype.getCurrentTypeMethods = function () {
+		return _( this.typeStructure ).findWhere({ type: this.getType() }).methods;
+	};
+
 	// Method for returning the current structure for the current type
 	passedClass.prototype.getCurrentTypeStructure = function () {
 		return _( this.typeStructure ).findWhere({ type: this.getType() }).fields;
@@ -246,6 +259,9 @@ ReactiveClass = function( passedClass ) {
 
 		// Set the reactiveData source for this object.
 		this.reactiveData = new ReactiveVar( this.prepareDataToCorrectTypes( initData ) );
+
+		// Setup all type specific methods
+		that.setupTypeMethods( this );
 
 		// TODO: Make a decision about this:
 		// Maybe delete the initData??

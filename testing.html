@@ -108,11 +108,11 @@
 	  		{{ getReactiveValue 'currency' }}
 	  	</p>
 	  	<p>
-	  		Taxes: {{ items.getTotal 'priceAfterTax' }} 
+	  		Total with taxes: {{ items.getTotal 'priceAfterTax' }} 
 	  		{{ getReactiveValue 'currency' }}
 	  	</p>
 	  	<p>
-	  		Total taxes: {{ items.getTotal 'tax' }} 
+	  		Taxes only: {{ items.getTotal 'tax' }} 
 	  		{{ getReactiveValue 'currency' }} (@ {{ items.getTaxPercentage }}%)
 	  	</p>
 
