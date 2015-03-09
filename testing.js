@@ -3,54 +3,62 @@ Invoices = new Meteor.Collection('invoices');
 if (Meteor.isServer)
   return false;
 
-Person = ReactiveClass(function Person( initData, type ) {
+Person = ReactiveClass(function Person( type, initData ) {
 
   var that = this;
 
   that.initData = initData || {};
+
+  that.typeStructure = [{
+    type: 'worker',
+    fields: {
+      name: String,
+      title: String,
+      children: ['self']
+    }
+  }, {
+    type: 'child',
+    fields: {
+      age: Number,
+      parents: ['self']
+    }
+  }];
 
   that.type = type || 'worker';
 
   that.initReactiveValues();
 
-}, [{
-  type: 'worker',
-  fields: {
-    name: String,
-    title: String,
-    children: ['self']
-  }
-}, {
-  type: 'child',
-  fields: {
-    age: Number,
-    parents: ['self']
-  }
-}
-]);
+});
 
-person = new Person({ name: 'Stoffe K' }, 'worker');
-person2 = new Person({}, 'child');
+person = new Person('worker', { name: 'Stoffe K' });
+person2 = new Person('child', {});
 
-Client = ReactiveClass( function Client( initData ) {
+Client = ReactiveClass( function Client( type, initData ) {
 
   var that = this;
   
   that.initData = initData || {};
 
+  that.typeStructure = [{
+    type: 'client',
+    fields: {
+      clientName: String,
+      adressStreet: String,
+      staff: [Person]
+    }
+  }];
+
+  that.type = type || 'client';
+
   that.initReactiveValues();
 
-}, {
-  clientName: String,
-  adressStreet: String,
-  staff: [Person]
 });
 
-client = new Client();
+client = new Client('client');
 
 client.setReactiveValue('staff', [ person ] );
 
-InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
+InvoceListItem = ReactiveClass(function InvoceListItem ( type, initData ) {
 
   var that = this;
 
@@ -62,6 +70,20 @@ InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
     tax: 25,
     taxDescription: 'moms'
   };
+
+  that.typeStructure = [{
+    type: 'invoiceListItem',
+    fields: {
+      itemName: String,
+      units: Number,
+      unitPrice: Number,
+      unitDescription: String,
+      tax: Number,
+      taxDescription: String
+    }
+  }];
+
+  that.type = type || 'invoiceListItem';
 
   that.initData = _( that.defaultData ).extend( initData || {} );
 
@@ -79,16 +101,9 @@ InvoceListItem = ReactiveClass(function InvoceListItem ( initData ) {
 
   that.initReactiveValues();
   
-}, {
-  itemName: String,
-  units: Number,
-  unitPrice: Number,
-  unitDescription: String,
-  tax: Number,
-  taxDescription: String
 });
 
-Invoice = ReactiveClass(function Invoice ( initData ) {
+Invoice = ReactiveClass(function Invoice ( type, initData ) {
 
   var that = this;
 
@@ -99,6 +114,20 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
     client: new Client(),
     invoices: []
   };
+
+  that.typeStructure = [{
+    type: 'invoice',
+    fields: {
+      _id: String,
+      invoiceName: String,
+      currency: String,
+      items: [InvoceListItem],
+      client: Client,
+      invoices: ['self']
+    }
+  }];
+
+  that.type = type || 'invoice';
 
   that.initData = _( that.defaultData ).extend( initData || {} );
 
@@ -125,16 +154,9 @@ Invoice = ReactiveClass(function Invoice ( initData ) {
 
   that.initReactiveValues();
 
-}, {
-  _id: String,
-  invoiceName: String,
-  currency: String,
-  items: [InvoceListItem],
-  client: Client,
-  invoices: ['self']
 });
 
-invoice1 = new Invoice();
+invoice1 = new Invoice('invoice');
 
 invoice1.setReactiveValue('client', client );
 
@@ -194,7 +216,7 @@ Template.editTemplate.helpers({
 
 Template.invoiceTestTemplate.events({
   'click .edit-invoice': function ( e, tmpl ) {
-    
+
     e.stopImmediatePropagation();
 
     Blaze.renderWithData( Template.editTemplate, this, document.body );

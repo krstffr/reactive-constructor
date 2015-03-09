@@ -5,17 +5,18 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 
 	var that = this;
 
-	// Make optionsStructure able to reference itself
+	if (optionsStructure)
+		throw new Error('optionsStructure is dep!');
+
+	// Make typeStructure able to reference itself
 	// Iterate over all the passed options, and change ['self'] to [passedClass]
 	// to make the type refer to the passedClass
-	that.setupOptionsStructure = function ( passedOptionsStructure ) {
+	that.setupTypeStructureFields = function ( typeStructureFields ) {
 
-		var structure = passedOptionsStructure.fields || passedOptionsStructure;
-
-		return lodash.mapValues(structure, function ( value ) {
+		return lodash.mapValues( typeStructureFields, function ( value ) {
 
 			// If it's not an array, skip this
-			if (Match.test(value, Array) ) {
+			if ( Match.test(value, Array) ) {
 				// Exchange any array values which might be 'self' to passedClass
 				value = _.map(value, function( arrayItem ){
 					if (arrayItem === 'self')
@@ -24,17 +25,16 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 				});
 			}
 
-			// Add the value to the optionsStructure
+			// Add the value to the typeStructure
 			return value;
 			
 		});
 
 	};
 
-	passedClass.prototype.getCurrentOptionsStructure = function () {
-		if ( this.type )
-			return _(optionsStructure).findWhere({ type: this.type }).fields;
-		return optionsStructure;
+	passedClass.prototype.getCurrentTypeStructure = function () {
+		console.log( this.typeStructure, this.type, _( this.typeStructure ).findWhere({ type: this.type }) );
+		return _( this.typeStructure ).findWhere({ type: this.type }).fields;
 	};
 
 	that.getTypeOfStructureItem = function ( item ) {
@@ -75,12 +75,12 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	};
 
 	passedClass.prototype.getReactiveValuesAsArray = function () {
-		var optionsStructure = this.getCurrentOptionsStructure();
+		var typeStructure = this.getCurrentTypeStructure();
 		return _( this.reactiveData.get() ).map( function( value, key, list ) {
 			return {
 				key: key,
 				value: value,
-				type: that.getTypeOfStructureItem( optionsStructure[key] )
+				type: that.getTypeOfStructureItem( typeStructure[key] )
 			};
 		});
 	};
@@ -90,7 +90,7 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 	};
 
 	passedClass.prototype.checkReactiveValue = function ( key, value ) {
-		check(value, this.getCurrentOptionsStructure()[key]);
+		check(value, this.getCurrentTypeStructure()[key]);
 		return true;
 	};
 
@@ -98,7 +98,9 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 
 	passedClass.prototype.checkReactiveValues = function () {
 
-		check(this.reactiveData.get(), this.getCurrentOptionsStructure() );
+		console.log( this.reactiveData.get(), this.getCurrentTypeStructure() );
+
+		check(this.reactiveData.get(), this.getCurrentTypeStructure() );
 
 		return true;
 
@@ -139,7 +141,7 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 		var getValueAsType = function ( value, key ) {
 
 			// Check for normal types and just return those
-			if ( that.getCurrentOptionsStructure()[key] && that.getCurrentOptionsStructure()[key].name && that.getCurrentOptionsStructure()[key].name.search(/String|Number/g) > -1)
+			if ( that.getCurrentTypeStructure()[key] && that.getCurrentTypeStructure()[key].name && that.getCurrentTypeStructure()[key].name.search(/String|Number/g) > -1)
 				return value;
 
 			// Is it an array?
@@ -147,17 +149,17 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 			if ( Match.test( value, Array ) ) {
 				return _(value).map( function ( arrayVal, arrayKey ) {
 					// Is it a "plain" object? Then transform it into a non-plain
-					// from the type provided in the optionsStructure!
+					// from the type provided in the typeStructure!
 					if ( Match.test( arrayVal, Object ) )
-						return new window[ that.getCurrentOptionsStructure()[ key ][ 0 ].name ]( arrayVal );
+						return new window[ that.getCurrentTypeStructure()[ key ][ 0 ].name ]( arrayVal );
 					return value;
 				});
 			}
 
 			// Is it a "plain" object? Then transform it into a non-plain
-			// from the type provided in the optionsStructure!
+			// from the type provided in the typeStructure!
 			if ( Match.test( value, Object ) )
-				return new window[ that.getCurrentOptionsStructure()[key].name ]( value );
+				return new window[ that.getCurrentTypeStructure()[key].name ]( value );
 
 			return value;
 
@@ -169,7 +171,7 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 
 	passedClass.prototype.setupInitValues = function ( initValues ) {
 		
-		var defaultValues = lodash.mapValues( this.getCurrentOptionsStructure(), function ( val ) {
+		var defaultValues = lodash.mapValues( this.getCurrentTypeStructure(), function ( val ) {
 			
 			if ( Match.test( val, Array ) )
 				return [];
@@ -189,14 +191,10 @@ ReactiveClass = function( passedClass, optionsStructure ) {
 
 	passedClass.prototype.initReactiveValues = function () {
 
-		if ( Match.test( optionsStructure, Array ) ) {
-			optionsStructure = _( optionsStructure ).map(function ( val ) {
-				val.fields = that.setupOptionsStructure( val.fields );
-				return val;
-			});
-		}
-		if ( Match.test( optionsStructure, Object ) )
-			optionsStructure = that.setupOptionsStructure( optionsStructure );
+		this.typeStructure = _( this.typeStructure ).map(function ( val ) {
+			val.fields = that.setupTypeStructureFields( val.fields );
+			return val;
+		});
 
 		var initData = this.setupInitValues( this.initData );
 
