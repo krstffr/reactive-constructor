@@ -42,6 +42,8 @@ Person = ReactiveConstructor(function Person( type, initData ) {
     }
   }];
 
+  that.type = type;
+
   that.initReactiveValues();
 
 });
@@ -64,6 +66,8 @@ Client = ReactiveConstructor( function Client( type, initData ) {
     }
   }];
 
+  that.type = type;
+
   that.initReactiveValues();
 
 });
@@ -82,7 +86,7 @@ Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
       _id: String,
       invoiceName: String,
       currency: String,
-      items: [InvoceListItem],
+      items: [InvoiceListItem],
       client: Client,
       invoices: ['self'],
       superCool: Boolean
@@ -118,6 +122,8 @@ Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
     return Invoices.upsert( { _id: dataToSave._id }, dataToSave );
   };
 
+  that.type = type;
+
   that.initReactiveValues();
 
 });
@@ -126,7 +132,7 @@ Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
 
 
 // A generic "InvoiceListItem"
-InvoceListItem = ReactiveConstructor(function InvoceListItem ( type, initData ) {
+InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( type, initData ) {
 
   var that = this;
 
@@ -163,6 +169,8 @@ InvoceListItem = ReactiveConstructor(function InvoceListItem ( type, initData ) 
   that.tax = function () {
     return that.priceAfterTax() - that.endPrice();
   };
+
+  that.type = type;
 
   that.initReactiveValues();
   

@@ -20,6 +20,7 @@ ReactiveConstructor = function( passedClass ) {
 			return 'Collection_'+item[0].name;
 		}
 	};
+
 	// TODO: This should probably be moved to the CMS-thing!
 	// Method for returning the data for the CMS frontend basically
 	passedClass.prototype.getReactiveValuesAsArray = function () {
@@ -39,7 +40,7 @@ ReactiveConstructor = function( passedClass ) {
 	// Make typeStructure able to reference itself basically.
 	// Iterate over all the passed fields, and change ['self'] to [passedClass]
 	// to make the type refer to the passedClass
-	that.setupTypeStructureFields = function ( typeStructureFields ) {
+	passedClass.prototype.setupTypeStructureFields = function ( typeStructureFields ) {
 
 		return lodash.mapValues( typeStructureFields, function ( value ) {
 
@@ -67,7 +68,8 @@ ReactiveConstructor = function( passedClass ) {
 
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
-	that.setupTypeMethods = function ( reactiveObject ) {
+	// TODO: How to make this more testable?
+	passedClass.prototype.setupTypeMethods = function ( reactiveObject ) {
 		_.each(reactiveObject.getCurrentTypeMethods(), function( method, methodName ){
 			reactiveObject[ methodName ] = method;
 		});
@@ -92,8 +94,10 @@ ReactiveConstructor = function( passedClass ) {
 		
 		// Get all the data
 		var reactiveData = this.reactiveData.get();
+
 		// Set the key field of the data to the new value
 		reactiveData[ key ] = value;
+		
 		// Set the reactive var to the new data
 		this.reactiveData.set( reactiveData );
 
@@ -171,9 +175,10 @@ ReactiveConstructor = function( passedClass ) {
 				return _(value).map( function ( arrayVal, arrayKey ) {
 					// Is it a "plain" object? Then transform it into a non-plain
 					// from the type provided in the typeStructure!
+					// Else just return the current array value
 					if ( Match.test( arrayVal, Object ) )
 						return new window[ valueType[ 0 ].name ]( arrayVal );
-					return value;
+					return arrayVal;
 				});
 			}
 
@@ -237,11 +242,13 @@ ReactiveConstructor = function( passedClass ) {
 	// Either return this.type or the first type declared in
 	// the typeStructure.
 	passedClass.prototype.getType = function () {
-		return (this.type) ? this.type : this.typeStructure[0].type;
+		return (this.type && Match.test( this.type, String )) ? this.type : this.typeStructure[0].type;
 	};
 
 	// Method for initiating the ReactiveConstructor.
 	passedClass.prototype.initReactiveValues = function () {
+
+		var that = this;
 
 		// Make the ['self'] field work, meaning that a field set to
 		// = ['self'] should really reference itself.
@@ -253,12 +260,13 @@ ReactiveConstructor = function( passedClass ) {
 		// Setup the init data, setting default data and bare data
 		// (Strings should be set to "" and numbers to 0 if no default or init value is set)
 		var initData = this.setupInitValues( this.initData );
+		initData = this.prepareDataToCorrectTypes( initData );
 
 		// Set the reactiveData source for this object.
-		this.reactiveData = new ReactiveVar( this.prepareDataToCorrectTypes( initData ) );
+		this.reactiveData = new ReactiveVar( initData );
 
 		// Setup all type specific methods
-		that.setupTypeMethods( this );
+		this.setupTypeMethods( this );
 
 		// TODO: Make a decision about this:
 		// Maybe delete the initData??

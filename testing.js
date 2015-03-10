@@ -45,7 +45,7 @@ Person = ReactiveConstructor(function Person( type, initData ) {
 
 });
 
-person = new Person('worker', { name: 'Stoffe K' });
+person = new Person('worker', { name: 'Stoffe K' }); //, children: [ new Person() ] });
 
 person2 = new Person('child', { age: 17 });
 console.log( 'Person2 is now ' + person2.getAgePlus(0) + ' and will be: ' + person2.getAgePlus( 3 ) + ' in three years!' );
@@ -83,7 +83,7 @@ client = new Client('client');
 
 client.setReactiveValue('staff', [ person ] );
 
-InvoceListItem = ReactiveConstructor(function InvoceListItem ( type, initData ) {
+InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( type, initData ) {
 
   var that = this;
 
@@ -125,7 +125,7 @@ InvoceListItem = ReactiveConstructor(function InvoceListItem ( type, initData ) 
   
 });
 
-var testInvoiceListItem = new InvoceListItem('invoiceListItem', { tax: 30 });
+var testInvoiceListItem = new InvoiceListItem('invoiceListItem', { tax: 30 });
 
 Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
 
@@ -139,7 +139,7 @@ Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
       _id: String,
       invoiceName: String,
       currency: String,
-      items: [InvoceListItem],
+      items: [InvoiceListItem],
       client: Client,
       invoices: ['self'],
       // TODO: Make this work!
@@ -182,7 +182,7 @@ Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
 
 });
 
-invoice1 = new Invoice('invoice', { invoiceName: 'KK666' });
+invoice1 = new Invoice('invoice', { invoiceName: 'KK666', items: [ new InvoiceListItem() ] });
 
 invoice1.setReactiveValue('client', client );
 

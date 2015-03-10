@@ -23,6 +23,8 @@ Package.on_test(function (api) {
   api.use(['krstffr:reactive-constructor'], 'client');
 
   api.add_files('tests/reactiveConstructorTestConstructors.js', 'client');
+  api.export(['Person', 'Client', 'Invoice', 'InvoiceListItem'], 'client');
+  
   api.add_files('tests/reactiveConstructorTests.js', 'client');
 
 });
