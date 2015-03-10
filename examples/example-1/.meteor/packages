@@ -5,9 +5,5 @@
 # but you can also edit it by hand.
 
 meteor-platform
-autopublish
-insecure
-reactive-var
-http
-stevezhu:lodash
 krstffr:reactive-constructor
+reactive-var
