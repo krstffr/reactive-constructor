@@ -1,0 +1,25 @@
+<head>
+  <title>testing</title>
+</head>
+
+<body>
+
+  {{> exampleTemplate }}
+
+</body>
+
+<template name="exampleTemplate">
+
+	{{#with invoice }}
+
+		<ul>
+		{{#each getReactiveValue 'items' }}
+			<li>${{ getReactiveValue 'price' }}</li>
+		{{/each}}
+
+		<li><strong>${{ getEndPrice }}</strong> total</li>
+		</ul>
+
+	{{/with}}
+	
+</template>
