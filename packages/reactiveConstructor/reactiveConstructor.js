@@ -1,3 +1,5 @@
+var typeKey = 'rcType';
+
 ReactiveConstructor = function( passedClass ) {
 
 	var that = this;
@@ -41,6 +43,9 @@ ReactiveConstructor = function( passedClass ) {
 	// Iterate over all the passed fields, and change ['self'] to [passedClass]
 	// to make the type refer to the passedClass
 	passedClass.prototype.setupTypeStructureFields = function ( typeStructureFields ) {
+
+		// Also add the rcType to the OK fields
+		// typeStructureFields.rcType = String;
 
 		return lodash.mapValues( typeStructureFields, function ( value ) {
 
@@ -112,6 +117,8 @@ ReactiveConstructor = function( passedClass ) {
 
 	// Get the value of the reactive data from key
 	passedClass.prototype.getReactiveValue = function ( key ) {
+		if (!this.reactiveData)
+			return false;
 		return this.reactiveData.get()[key];
 	};
 
@@ -238,17 +245,43 @@ ReactiveConstructor = function( passedClass ) {
 
 	};
 
+	// TODO: This needs to be handled in a cleaner way probably!
+	passedClass.prototype.setType = function ( initData ) {
+		
+		typeValue = (initData && initData[ typeKey ]) ? initData[ typeKey ] : this.typeStructure[0].type;
+		
+		// Make sure it's a string!
+		check(typeValue, String );
+
+		// Make sure the type is actually defined!
+		if (!_( this.typeStructure ).findWhere({ type: typeValue }))
+			throw new Meteor.Error("reactiveData-wrong-type", "There is no type: "+typeValue+"!");
+
+		this[ typeKey ] = typeValue;
+
+		return this[ typeKey ];
+
+	};
+
 	// Method for returning the current type of the object.
 	// Either return this.type or the first type declared in
 	// the typeStructure.
 	passedClass.prototype.getType = function () {
-		return (this.type && Match.test( this.type, String )) ? this.type : this.typeStructure[0].type;
+		return this[ typeKey ];
 	};
 
 	// Method for initiating the ReactiveConstructor.
 	passedClass.prototype.initReactiveValues = function () {
 
 		var that = this;
+
+		// Setup the type of this constructor
+		this.setType( this.initData );
+		
+		// Remove the type key!
+		// TODO: This needs to be handled in a cleaner way probably!
+		if (this.initData && this.initData[ typeKey ])
+			delete this.initData[ typeKey ];
 
 		// Make the ['self'] field work, meaning that a field set to
 		// = ['self'] should really reference itself.

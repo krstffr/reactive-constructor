@@ -41,7 +41,7 @@ Tinytest.add('Invoice – Init constructors with some params', function ( test 
 		superCool: true,
 		items: [
 		new InvoiceListItem(),
-		new InvoiceListItem('invoiceListItem', {
+		new InvoiceListItem({
 			units: 10,
 			unitPrice: 500
 		})
@@ -51,7 +51,7 @@ Tinytest.add('Invoice – Init constructors with some params', function ( test 
 	var setKeys = _( setValues ).keys();
 
 	// The invoice with the set values
-	var testInvoice = new Invoice('invoice', setValues );
+	var testInvoice = new Invoice( setValues );
 
 	_.each(setKeys, function( key ){
 		// Make sure the set values match
@@ -60,42 +60,51 @@ Tinytest.add('Invoice – Init constructors with some params', function ( test 
 
 });
 
+Tinytest.add('Person – Init person with "child" type', function ( test ) {
+	
+	var testChild = new Person({ rcType: 'child' });
+
+	test.equal( testChild.getType(), 'child' );
+	test.isFalse( testChild.getReactiveValue('rcType') );
+
+});
+
 Tinytest.add('Invoice / invoiceListItem – Throw errors when using wrong types', function ( test ) {
 	
 	test.throws(function () {
-		new Invoice('invoice', { currency: 1.23 });
+		new Invoice({ currency: 1.23 });
 	});
 	
 	test.throws(function () {
-		new Invoice('invoice', { invoiceName: function() {} });
+		new Invoice({ invoiceName: function() {} });
 	});
 
 	test.throws(function () {
-		new Invoice('invoice', { items: 'a string' });
+		new Invoice({ items: 'a string' });
 	});
 
 	test.throws(function () {
-		new Invoice('invoice', { superCool: 0 });
+		new Invoice({ superCool: 0 });
 	});
 
 	test.throws(function () {
-		new Invoice('invoice', { client: new Invoice() });
+		new Invoice({ client: new Invoice() });
 	});
 
 	test.throws(function () {
-		new Invoice('invoice', { items: new invoiceListItem() });
+		new Invoice({ items: new invoiceListItem() });
 	});
 
 	test.throws(function () {
-		new InvoiceListItem('invoice', { units: true });
+		new InvoiceListItem({ units: true });
 	});
 
 	test.throws(function () {
-		new InvoiceListItem('invoice', { units: [{ wrong: 'type this is!' }] });
+		new InvoiceListItem({ units: [{ wrong: 'type this is!' }] });
 	});
 
 	test.throws(function () {
-		new InvoiceListItem('invoice', { unitPrice: function() { return 1; } });
+		new InvoiceListItem({ unitPrice: function() { return 1; } });
 	});
 
 });
@@ -114,7 +123,7 @@ Tinytest.add('Invoice – Test some methods', function ( test ) {
   var unitPrice = 500;
   var tax       = 30;
 
-  var newItem = new InvoiceListItem('invoiceListItem', {
+  var newItem = new InvoiceListItem({
   	units: units,
   	unitPrice: unitPrice,
   	tax: tax
@@ -155,7 +164,7 @@ Tinytest.add('getCurrentTypeMethods()', function ( test ) {
 	var methodsDefinedInConstructor = _( new Person().typeStructure )
 	.findWhere({ type: 'child'} ).methods;
 	
-	var child = new Person('child', {});
+	var child = new Person({});
 
 	var methods = child.getCurrentTypeMethods();
 
@@ -216,7 +225,7 @@ Tinytest.add('setReactiveValue()', function ( test ) {
 		name: 'Name of a cool person',
 		title: 'CEO of something cool',
 		age: 50,
-		children: [ new Person('child') ]
+		children: [ new Person() ]
 	};
 
 	_.each(newValues, function( newValue, key ){
@@ -256,7 +265,7 @@ Tinytest.add('getReactiveValue()', function ( test ) {
 		superCool: true
 	};
 
-	var testInvoice = new Invoice('invoice', initValues );
+	var testInvoice = new Invoice( initValues );
 
 	_.each(initValues, function( value, key ) {
 		test.equal( testInvoice.getReactiveValue( key ), value );
@@ -336,8 +345,8 @@ Tinytest.add('getDataAsObject()', function ( test ) {
 
 	var childAge = 50;
 	
-	var testPerson = new Person('worker', {
-		children: [ new Person('child', {
+	var testPerson = new Person({
+		children: [ new Person({
 			age: childAge
 		}) ]
 	});
@@ -375,17 +384,85 @@ Tinytest.add('prepareDataToCorrectTypes()', function ( test ) {
 	var initData = {
 		items: [{
 			itemName: '',
-      units: 50,
-      unitPrice: 700,
-      unitDescription: 'timmar',
-      tax: 25,
-      taxDescription: 'moms'
+			units: 50,
+			unitPrice: 700,
+			unitDescription: 'timmar',
+			tax: 25,
+			taxDescription: 'moms'
 		}]
 	};
 
-	var testInvoice = new Invoice('invoice', initData );
+	var testInvoice = new Invoice( initData );
 
-	console.log( testInvoice.getDataAsObject().items[0].units );
-	console.log( testInvoice.getReactiveValue('items')[0].getReactiveValue('units') );
+	// The nested InvoiceListItem (which was defined as a plain object)
+	// shoule now be an actual instance of the InvoiceListItem constructor
+	test.instanceOf( testInvoice.getReactiveValue('items')[0], InvoiceListItem );
+	test.equal( testInvoice.getReactiveValue('items')[0].getReactiveValue('units'), initData.items[0].units );
 	
+});
+
+Tinytest.add('getDefaultValues()', function ( test ) {
+	
+	var testPerson = new Person();
+
+	test.equal( testPerson.getDefaultValues(), new Person().typeStructure[0].defaultData );
+
+});
+
+Tinytest.add('setupInitValues()', function ( test ) {
+	
+	var testClient = new Client();
+
+	var theDefaultItems = new Client().typeStructure[0];
+
+	var defaultItemsLength = _( theDefaultItems.defaultData ).keys().length;
+
+	test.notEqual( testClient.setupInitValues(), theDefaultItems.defaultData );
+	test.notEqual( _( testClient.setupInitValues() ).keys().length, defaultItemsLength );
+	test.isTrue( _( testClient.setupInitValues() ).keys().length > defaultItemsLength );
+
+});
+
+Tinytest.add('setType()', function ( test ) {
+	
+	var testPerson = new Person();
+
+	var typeKey = 'child';
+
+	test.equal( testPerson.setType({ rcType: typeKey }), typeKey );
+	test.equal( testPerson.getType(), typeKey );
+
+});
+
+Tinytest.add('setType() – throw error when trying to set a type which is not defined', function ( test ) {
+	
+	var testClient = new Client();
+
+	test.throws(function () {
+		testClient.setType({ rcType: 'THIS IS NOT A CORRECT TYPE!' });
+	});
+
+	test.throws(function () {
+		testClient.setType({ rcType: function () { return 'cool type dude'; } });
+	});
+
+});
+
+Tinytest.add('getType()', function ( test ) {
+	
+	var testClient = new Client();
+	var defaultType = new Client().typeStructure[0].type;
+	test.equal( testClient.getType(), defaultType );
+
+	var testPerson = new Person();
+	defaultType = new Person().typeStructure[0].type;
+	test.equal( testPerson.getType(), defaultType );
+
+	var testInvoice = new Invoice();
+	defaultType = new Invoice().typeStructure[0].type;
+	test.equal( testInvoice.getType(), defaultType );
+
+	testPerson.setType({ rcType: 'child' });
+	test.equal( testPerson.getType(), 'child' );
+
 });

@@ -3,7 +3,7 @@ Invoices = new Meteor.Collection('invoices');
 if (Meteor.isServer)
   return false;
 
-Person = ReactiveConstructor(function Person( type, initData ) {
+Person = ReactiveConstructor(function Person( initData ) {
 
   var that = this;
 
@@ -39,15 +39,13 @@ Person = ReactiveConstructor(function Person( type, initData ) {
     }
   }];
 
-  that.type = type || 'worker';
-
   that.initReactiveValues();
 
 });
 
-person = new Person('worker', { name: 'Stoffe K' }); //, children: [ new Person() ] });
+person = new Person({ name: 'Stoffe K' }); //, children: [ new Person() ] });
 
-person2 = new Person('child', { age: 17 });
+person2 = new Person({ age: 17, rcType: 'child' });
 console.log( 'Person2 is now ' + person2.getAgePlus(0) + ' and will be: ' + person2.getAgePlus( 3 ) + ' in three years!' );
 console.log( 'Person2 is a teenager: ' + person2.isTeenager() );
 console.log( 'Person2 ages six years and is now: ' + person2.addYears( 6 ) );
@@ -55,10 +53,10 @@ console.log( 'Person2 is a teenager after the six years? ' + person2.isTeenager(
 
 console.log( 'Person1 should not have a isTeenager method! typeof is: ' + typeof person.isTeenager );
 
-person3 = new Person('child', { age: 50 });
-person4 = new Person('worker');
+person3 = new Person({ age: 50, rcType: 'child' });
+person4 = new Person();
 
-Client = ReactiveConstructor( function Client( type, initData ) {
+Client = ReactiveConstructor( function Client( initData ) {
 
   var that = this;
   
@@ -73,17 +71,15 @@ Client = ReactiveConstructor( function Client( type, initData ) {
     }
   }];
 
-  that.type = type || 'client';
-
   that.initReactiveValues();
 
 });
 
-client = new Client('client');
+client = new Client();
 
 client.setReactiveValue('staff', [ person ] );
 
-InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( type, initData ) {
+InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( initData ) {
 
   var that = this;
 
@@ -107,8 +103,6 @@ InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( type, initData 
     }
   }];
 
-  that.type = type || 'invoiceListItem';
-
   that.endPrice = function ( context ) {
     return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
   };
@@ -125,9 +119,9 @@ InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( type, initData 
   
 });
 
-var testInvoiceListItem = new InvoiceListItem('invoiceListItem', { tax: 30 });
+var testInvoiceListItem = new InvoiceListItem({ tax: 30 });
 
-Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
+Invoice = ReactiveConstructor(function Invoice ( initData ) {
 
   var that = this;
 
@@ -155,8 +149,6 @@ Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
     }
   }];
 
-  // that.type = type || 'invoice';
-
   // Invoice items
   that.items = {};
 
@@ -182,7 +174,7 @@ Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
 
 });
 
-invoice1 = new Invoice('invoice', { invoiceName: 'KK666', items: [ new InvoiceListItem() ] });
+invoice1 = new Invoice({ invoiceName: 'KK666', items: [ new InvoiceListItem() ] });
 
 invoice1.setReactiveValue('client', client );
 

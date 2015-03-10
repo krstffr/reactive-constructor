@@ -1,5 +1,5 @@
 // Create a reactive constructor which can be used in tests.
-Person = ReactiveConstructor(function Person( type, initData ) {
+Person = ReactiveConstructor(function Person( initData ) {
 
   var that = this;
 
@@ -42,8 +42,6 @@ Person = ReactiveConstructor(function Person( type, initData ) {
     }
   }];
 
-  that.type = type;
-
   that.initReactiveValues();
 
 });
@@ -51,7 +49,7 @@ Person = ReactiveConstructor(function Person( type, initData ) {
 
 
 // A generic "Client"
-Client = ReactiveConstructor( function Client( type, initData ) {
+Client = ReactiveConstructor( function Client( initData ) {
 
   var that = this;
   
@@ -63,10 +61,11 @@ Client = ReactiveConstructor( function Client( type, initData ) {
       clientName: String,
       adressStreet: String,
       staff: [Person]
+    },
+    defaultData: {
+      clientName: 'new client'
     }
   }];
-
-  that.type = type;
 
   that.initReactiveValues();
 
@@ -74,7 +73,7 @@ Client = ReactiveConstructor( function Client( type, initData ) {
 
 
 // A generic "Invoice"
-Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
+Invoice = ReactiveConstructor(function Invoice ( initData ) {
 
   var that = this;
 
@@ -122,8 +121,6 @@ Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
     return Invoices.upsert( { _id: dataToSave._id }, dataToSave );
   };
 
-  that.type = type;
-
   that.initReactiveValues();
 
 });
@@ -132,7 +129,7 @@ Invoice = ReactiveConstructor(function Invoice ( type, initData ) {
 
 
 // A generic "InvoiceListItem"
-InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( type, initData ) {
+InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( initData ) {
 
   var that = this;
 
@@ -169,8 +166,6 @@ InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( type, initData 
   that.tax = function () {
     return that.priceAfterTax() - that.endPrice();
   };
-
-  that.type = type;
 
   that.initReactiveValues();
   
