@@ -1,0 +1,21 @@
+<head>
+  <title>testing</title>
+</head>
+
+<body>
+
+  {{> exampleTemplate }}
+
+</body>
+
+<template name="exampleTemplate">
+	
+	<h1>A reactive name: <strong>{{ name }}</strong></h1>
+
+	<p>
+		Change this value by going to your console and typing:
+	</p>
+	
+	<pre><code>instance1.setReactiveValue('name', 'A new value!');</code></pre>
+	
+</template>
