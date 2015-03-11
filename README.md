@@ -1,15 +1,56 @@
 # reactive-constructor [![Build Status](https://travis-ci.org/krstffr/reactive-constructor.svg)](https://travis-ci.org/krstffr/reactive-constructor)
 
-This is a package for creating reactive-by-default objects. And what does that mean? Basically that the objects created from your reactive constructors get specific set and get methods which enable reactivity. These methods (which are the methods you'll use the most) are ```getReactiveValue( key )``` and ```getReactiveValue( key, newValue )```.
+This is a package for creating reactive-by-default objects. And what does that mean? Basically that the objects created from your reactive constructors get specific set and get methods which enable reactivity. These methods (which are the methods you'll use the most) are ```getReactiveValue( key )``` and ```setReactiveValue( key, newValue )```.
 
-For example, let's say you have an ```Invoice``` object, which in turn has a couple of ```InvoiceListItem``` objects in it which has a ```name```, a ```price``` and a ```tax``` property. Let's say you want that Invoice object to automatically compute the sum of all the items ```price``` and ```tax``` values, and always has this value up to date no matter when an individual Item object is added, removed or changed. 
+In short: create a reactive constructor, and every instance created from it will get these two methods!
+
+```javascript
+
+SomeConstructor = new ReactiveConstructor( function SomeConstructor ( initData ) {
+	
+	// Bind the passed initData to this
+	this.initData = initData;
+	
+	// Here you define the structure of the reactive data (and their types!)
+	this.typeStructure = [{
+    type: 'aCoolType',
+    fields: {
+      name: String,
+      age: Number,
+      salary: Number
+    }
+  }];
+  
+  // For now this method needs to get called in order for the instance
+  // to get setup correctly. This will hopefully not be needed in the future.
+  this.initReactiveValues();
+	
+});
+
+// Here we create a new instance from the constructor
+var instance1 = new SomeConstructor({ name: 'Kristoffer' });
+
+// We can use the getReactiveValue( key ) method for example in templates
+// to get the current value of name, which will auto update whenever a
+// new value gets set using setReactiveValue( key, value ).
+instance1.getReactiveValue('name');
+
+// Any templates which uses instance1.getReactiveValue('name') will now
+// display "Bertil" instead of "Kristoffer", and this is changed automatically.
+instance1.setReactiveValue('name', 'Bertil');
+
+```
+
+## Example 1, a reactive invoice object
+
+Let's say you have an ```Invoice``` object, which in turn has a couple of ```InvoiceListItem``` objects in it which has a ```name```, a ```price``` and a ```tax``` property. Let's say you want that Invoice object to automatically compute the sum of all the items ```price``` and ```tax``` values, and always has this value up to date no matter when an individual Item object is added, removed or changed. 
 
 This would be super simple using reactive-constructor. Just do the following (this example is also in the /examples/example-2/ dir):
 
 ```javascript
 
 // Create the Invoice constructor
-Invoice = ReactiveConstructor(function Invoice ( initData ) {
+Invoice = ReactiveConstructor( function Invoice ( initData ) {
   
   // You need to set this.initData to the passed initData
   // (Maybe this will be updated in the future.)
@@ -41,7 +82,7 @@ Invoice = ReactiveConstructor(function Invoice ( initData ) {
 });
 
 // …and setup the InvoiceListItem constructor
-InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( initData ) {
+InvoiceListItem = ReactiveConstructor( function InvoiceListItem ( initData ) {
 
   this.initData = initData;
   
