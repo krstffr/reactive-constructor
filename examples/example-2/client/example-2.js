@@ -1,3 +1,6 @@
+/* global InvoiceListItem:true */
+/* global Invoice:true */
+
 // Create the Invoice constructor
 Invoice = new ReactiveConstructor(function Invoice ( initData ) {
   

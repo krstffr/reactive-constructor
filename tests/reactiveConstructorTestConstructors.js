@@ -1,3 +1,8 @@
+/* global Invoice:true */
+/* global InvoiceListItem:true */
+/* global Person:true */
+/* global Client:true */
+
 // Create a reactive constructor which can be used in tests.
 Person = new ReactiveConstructor(function Person( initData ) {
 
