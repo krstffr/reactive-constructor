@@ -23,12 +23,10 @@
     "it",
     "angular",
     "inject",
-    "module",
-    "ReactiveConstructor",
-    "console",
+    "module"
   ],
   "quotmark": true,
   "trailing": true,
-  "undef": true,
+  "undef": false,
   "unused": true
 }
