@@ -8,7 +8,7 @@ Package.onUse(function (api) {
 
 	api.versionsFrom("METEOR@0.9.0");
 
-	api.use(['stevezhu:lodash@1.0.2', 'underscore', 'reactive-var@1.0.4'], 'client');
+	api.use(['stevezhu:lodash@1.0.2', 'reactive-var@1.0.4'], 'client');
 
   api.addFiles('reactiveConstructor.js', 'client');
 
