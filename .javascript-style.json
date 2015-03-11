@@ -24,7 +24,6 @@
     "angular",
     "inject",
     "module",
-    // Some of the example global vars
     "Invoice",
     "InvoiceListItem",
     "ReactiveConstructor",
