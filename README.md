@@ -6,13 +6,15 @@ In short: create a reactive constructor, and every instance created from it will
 
 ```javascript
 
+// This code is available in the /examples/example-3/ folder
+
 SomeConstructor = new ReactiveConstructor( function SomeConstructor ( initData ) {
-	
-	// Bind the passed initData to this
-	this.initData = initData;
-	
-	// Here you define the structure of the reactive data (and their types!)
-	this.typeStructure = [{
+  
+  // Bind the passed initData to this
+  this.initData = initData;
+  
+  // Here you define the structure of the reactive data (and their types!)
+  this.typeStructure = [{
     type: 'aCoolType',
     fields: {
       name: String,
@@ -24,20 +26,22 @@ SomeConstructor = new ReactiveConstructor( function SomeConstructor ( initData )
   // For now this method needs to get called in order for the instance
   // to get setup correctly. This will hopefully not be needed in the future.
   this.initReactiveValues();
-	
+  
 });
 
 // Here we create a new instance from the constructor
-var instance1 = new SomeConstructor({ name: 'Kristoffer' });
+instance1 = new SomeConstructor({ name: 'Kristoffer' });
 
 // We can use the getReactiveValue( key ) method for example in templates
 // to get the current value of name, which will auto update whenever a
 // new value gets set using setReactiveValue( key, value ).
-instance1.getReactiveValue('name');
+console.log( instance1.getReactiveValue('name') );
 
 // Any templates which uses instance1.getReactiveValue('name') will now
 // display "Bertil" instead of "Kristoffer", and this is changed automatically.
 instance1.setReactiveValue('name', 'Bertil');
+
+console.log( instance1.getReactiveValue('name') );
 
 ```
 
