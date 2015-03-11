@@ -27,7 +27,7 @@ ReactiveConstructor = function( passedClass ) {
 	// Method for returning the data for the CMS frontend basically
 	passedClass.prototype.getReactiveValuesAsArray = function () {
 		var typeStructure = this.getCurrentTypeStructure();
-		return _( this.reactiveData.get() ).map( function( value, key, list ) {
+		return _.map( this.reactiveData.get(), function( value, key ) {
 			return {
 				key: key,
 				value: value,
@@ -47,7 +47,7 @@ ReactiveConstructor = function( passedClass ) {
 		// Also add the rcType to the OK fields
 		// typeStructureFields.rcType = String;
 
-		return lodash.mapValues( typeStructureFields, function ( value ) {
+		return _.mapValues( typeStructureFields, function ( value ) {
 
 			if ( value === 'self') {
 				console.log('TODO: value of: "self" this need to be made recursive!');
@@ -82,12 +82,12 @@ ReactiveConstructor = function( passedClass ) {
 
 	// Method for getting all custom methods of this 
 	passedClass.prototype.getCurrentTypeMethods = function () {
-		return _( this.typeStructure ).findWhere({ type: this.getType() }).methods;
+		return _.findWhere( this.typeStructure, { type: this.getType() }).methods;
 	};
 
 	// Method for returning the current structure for the current type
 	passedClass.prototype.getCurrentTypeStructure = function () {
-		return _( this.typeStructure ).findWhere({ type: this.getType() }).fields;
+		return _.findWhere( this.typeStructure, { type: this.getType() }).fields;
 	};
 
 	// Method for setting the value of a reactive item.
@@ -140,7 +140,7 @@ ReactiveConstructor = function( passedClass ) {
 	passedClass.prototype.getDataAsObject = function () {
 
 		// Map over the reactive data object
-		return lodash.mapValues(this.reactiveData.get(), function ( value ) {
+		return _.mapValues(this.reactiveData.get(), function ( value ) {
 
 			// Does the value have this method? Then it's "one of us", recurse!
 			if ( Match.test( value.getDataAsObject, Function ) )
@@ -148,7 +148,7 @@ ReactiveConstructor = function( passedClass ) {
 
 			// Is it an array of items?
 			if ( Match.test( value, Array ) ) {
-				value = _( value ).map( function( arrayVal ) {
+				value = _.map( value, function( arrayVal ) {
 					// Does the value have this method? Then it's "one of us", recurse!
 					if ( Match.test( arrayVal.getDataAsObject, Function ) )
 						return arrayVal.getDataAsObject();
@@ -179,7 +179,7 @@ ReactiveConstructor = function( passedClass ) {
 			// Is it an array?
 			// Iterate this method over every field
 			if ( Match.test( value, Array ) ) {
-				return _(value).map( function ( arrayVal, arrayKey ) {
+				return _.map( value, function ( arrayVal ) {
 					// Is it a "plain" object? Then transform it into a non-plain
 					// from the type provided in the typeStructure!
 					// Else just return the current array value
@@ -198,14 +198,14 @@ ReactiveConstructor = function( passedClass ) {
 
 		};
 
-		return lodash.mapValues( data, getValueAsType );
+		return _.mapValues( data, getValueAsType );
 
 	};
 
 	// Method for returning the default values for the type, as defined in the
 	// constructor function.
 	passedClass.prototype.getDefaultValues = function () {
-		return _( this.typeStructure ).findWhere({ type: this.getType() }).defaultData || {};
+		return _.findWhere( this.typeStructure, { type: this.getType() }).defaultData || {};
 	};
 
 	// Method for setting up all initValues, no matter what initValues
@@ -217,7 +217,7 @@ ReactiveConstructor = function( passedClass ) {
 		// For example: a String will return "", a Number will return 0
 		// and an array will return [].
 		// A class constructor will return a new bare bones object from that class
-		var bareValues = lodash.mapValues( this.getCurrentTypeStructure(), function ( val ) {
+		var bareValues = _.mapValues( this.getCurrentTypeStructure(), function ( val ) {
 
 			// For arrays: return an empty array
 			if ( Match.test( val, Array ) )
@@ -241,7 +241,7 @@ ReactiveConstructor = function( passedClass ) {
 
 		// Overwrite all the "bare values" with the values which got passed
 		// in the initValues and return this new "complete" set of initValues.
-		return _( bareValues ).extend( this.getDefaultValues(), initValues );
+		return _.assign( bareValues, this.getDefaultValues(), initValues );
 
 	};
 
@@ -254,7 +254,7 @@ ReactiveConstructor = function( passedClass ) {
 		check(typeValue, String );
 
 		// Make sure the type is actually defined!
-		if (!_( this.typeStructure ).findWhere({ type: typeValue }))
+		if (!_.findWhere( this.typeStructure, { type: typeValue }))
 			throw new Meteor.Error("reactiveData-wrong-type", "There is no type: "+typeValue+"!");
 
 		this[ typeKey ] = typeValue;
@@ -285,7 +285,7 @@ ReactiveConstructor = function( passedClass ) {
 
 		// Make the ['self'] field work, meaning that a field set to
 		// = ['self'] should really reference itself.
-		this.typeStructure = _( this.typeStructure ).map(function ( val ) {
+		this.typeStructure = _.map( this.typeStructure, function ( val ) {
 			val.fields = that.setupTypeStructureFields( val.fields );
 			return val;
 		});
