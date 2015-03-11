@@ -27,7 +27,7 @@ ReactiveConstructor = function( passedClass ) {
 	// Method for returning the data for the CMS frontend basically
 	passedClass.prototype.getReactiveValuesAsArray = function () {
 		var typeStructure = this.getCurrentTypeStructure();
-		return _.map( this.reactiveData.get(), function( value, key, list ) {
+		return _.map( this.reactiveData.get(), function( value, key ) {
 			return {
 				key: key,
 				value: value,
@@ -179,7 +179,7 @@ ReactiveConstructor = function( passedClass ) {
 			// Is it an array?
 			// Iterate this method over every field
 			if ( Match.test( value, Array ) ) {
-				return _.map( value, function ( arrayVal, arrayKey ) {
+				return _.map( value, function ( arrayVal ) {
 					// Is it a "plain" object? Then transform it into a non-plain
 					// from the type provided in the typeStructure!
 					// Else just return the current array value
