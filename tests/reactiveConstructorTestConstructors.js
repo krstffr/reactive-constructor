@@ -1,5 +1,5 @@
 // Create a reactive constructor which can be used in tests.
-Person = ReactiveConstructor(function Person( initData ) {
+Person = new ReactiveConstructor(function Person( initData ) {
 
   var that = this;
 
@@ -49,7 +49,7 @@ Person = ReactiveConstructor(function Person( initData ) {
 
 
 // A generic "Client"
-Client = ReactiveConstructor( function Client( initData ) {
+Client = new ReactiveConstructor( function Client( initData ) {
 
   var that = this;
   
@@ -73,7 +73,7 @@ Client = ReactiveConstructor( function Client( initData ) {
 
 
 // A generic "Invoice"
-Invoice = ReactiveConstructor(function Invoice ( initData ) {
+Invoice = new ReactiveConstructor(function Invoice ( initData ) {
 
   var that = this;
 
@@ -113,7 +113,11 @@ Invoice = ReactiveConstructor(function Invoice ( initData ) {
   };
 
   that.items.getTaxPercentage = function () {
-    return (that.items.getTotal('tax') / that.items.getTotal('endPrice') * 100 || 0).toFixed(1);
+    return (
+      that.items.getTotal('tax') /
+      that.items.getTotal('endPrice') * 100 ||
+      0
+      ).toFixed(1);
   };
 
   that.saveInvoice = function () {
@@ -129,7 +133,7 @@ Invoice = ReactiveConstructor(function Invoice ( initData ) {
 
 
 // A generic "InvoiceListItem"
-InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( initData ) {
+InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) {
 
   var that = this;
 
