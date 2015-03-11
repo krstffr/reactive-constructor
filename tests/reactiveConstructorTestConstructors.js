@@ -1,8 +1,3 @@
-/* global Invoice:true */
-/* global InvoiceListItem:true */
-/* global Person:true */
-/* global Client:true */
-
 // Create a reactive constructor which can be used in tests.
 Person = new ReactiveConstructor(function Person( initData ) {
 
@@ -118,7 +113,11 @@ Invoice = new ReactiveConstructor(function Invoice ( initData ) {
   };
 
   that.items.getTaxPercentage = function () {
-    return (that.items.getTotal('tax') / that.items.getTotal('endPrice') * 100 || 0).toFixed(1);
+    return (
+      that.items.getTotal('tax') /
+      that.items.getTotal('endPrice') * 100 ||
+      0
+      ).toFixed(1);
   };
 
   that.saveInvoice = function () {
