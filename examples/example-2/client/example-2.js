@@ -1,5 +1,8 @@
+/* global InvoiceListItem:true */
+/* global Invoice:true */
+
 // Create the Invoice constructor
-Invoice = ReactiveConstructor(function Invoice ( initData ) {
+Invoice = new ReactiveConstructor(function Invoice ( initData ) {
   
   // You need to set this.initData to the passed initData
   // (Maybe this will be updated in the future.)
@@ -31,7 +34,7 @@ Invoice = ReactiveConstructor(function Invoice ( initData ) {
 });
 
 // …and setup the InvoiceListItem constructor
-InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( initData ) {
+InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) {
 
   this.initData = initData;
   
@@ -50,12 +53,12 @@ InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( initData ) {
 
 // Here we create the items which will be in the invoice…
 var listItem1 = new InvoiceListItem({
-  itemName: "Cup of coffe",
+  itemName: 'Cup of coffe',
   price: 5,
   tax: 1
 });
 var listItem2 = new InvoiceListItem({
-  itemName: "A cupcake",
+  itemName: 'A cupcake',
   price: 7,
   tax: 1.4
 });

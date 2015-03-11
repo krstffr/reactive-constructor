@@ -1,5 +1,10 @@
+/* global Invoice:true */
+/* global InvoiceListItem:true */
+/* global Person:true */
+/* global Client:true */
+
 // Create a reactive constructor which can be used in tests.
-Person = ReactiveConstructor(function Person( initData ) {
+Person = new ReactiveConstructor(function Person( initData ) {
 
   var that = this;
 
@@ -49,7 +54,7 @@ Person = ReactiveConstructor(function Person( initData ) {
 
 
 // A generic "Client"
-Client = ReactiveConstructor( function Client( initData ) {
+Client = new ReactiveConstructor( function Client( initData ) {
 
   var that = this;
   
@@ -73,7 +78,7 @@ Client = ReactiveConstructor( function Client( initData ) {
 
 
 // A generic "Invoice"
-Invoice = ReactiveConstructor(function Invoice ( initData ) {
+Invoice = new ReactiveConstructor(function Invoice ( initData ) {
 
   var that = this;
 
@@ -129,7 +134,7 @@ Invoice = ReactiveConstructor(function Invoice ( initData ) {
 
 
 // A generic "InvoiceListItem"
-InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( initData ) {
+InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) {
 
   var that = this;
 

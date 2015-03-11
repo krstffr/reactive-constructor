@@ -1,9 +1,14 @@
+/* global Person:true */
+/* global Client:true */
+/* global InvoiceListItem:true */
+/* global Invoice:true */
+
 Invoices = new Meteor.Collection('invoices');
 
 if (Meteor.isServer)
   return false;
 
-Person = ReactiveConstructor(function Person( initData ) {
+Person = new ReactiveConstructor(function Person( initData ) {
 
   var that = this;
 
@@ -43,20 +48,21 @@ Person = ReactiveConstructor(function Person( initData ) {
 
 });
 
-person = new Person({ name: 'Stoffe K' }); //, children: [ new Person() ] });
+person = new Person({ name: 'Stoffe K' });
 
 person2 = new Person({ age: 17, rcType: 'child' });
-console.log( 'Person2 is now ' + person2.getAgePlus(0) + ' and will be: ' + person2.getAgePlus( 3 ) + ' in three years!' );
+console.log( 'Person2 is now ' + person2.getAgePlus(0));
+console.log( ' and he/she will be: ' + person2.getAgePlus( 3 ) + ' in three years!' );
 console.log( 'Person2 is a teenager: ' + person2.isTeenager() );
 console.log( 'Person2 ages six years and is now: ' + person2.addYears( 6 ) );
 console.log( 'Person2 is a teenager after the six years? ' + person2.isTeenager() );
-
-console.log( 'Person1 should not have a isTeenager method! typeof is: ' + typeof person.isTeenager );
+console.log( 'Person1 should not have a isTeenager method!');
+console.log( 'typeof is: ' + typeof person.isTeenager );
 
 person3 = new Person({ age: 50, rcType: 'child' });
 person4 = new Person();
 
-Client = ReactiveConstructor( function Client( initData ) {
+Client = new ReactiveConstructor( function Client( initData ) {
 
   var that = this;
   
@@ -79,7 +85,7 @@ client = new Client();
 
 client.setReactiveValue('staff', [ person ] );
 
-InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( initData ) {
+InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) {
 
   var that = this;
 
@@ -121,7 +127,7 @@ InvoiceListItem = ReactiveConstructor(function InvoiceListItem ( initData ) {
 
 var testInvoiceListItem = new InvoiceListItem({ tax: 30 });
 
-Invoice = ReactiveConstructor(function Invoice ( initData ) {
+Invoice = new ReactiveConstructor(function Invoice ( initData ) {
 
   var that = this;
 
@@ -162,7 +168,11 @@ Invoice = ReactiveConstructor(function Invoice ( initData ) {
   };
 
   that.items.getTaxPercentage = function () {
-    return (that.items.getTotal('tax') / that.items.getTotal('endPrice') * 100 || 0).toFixed(1);
+    return (
+      that.items.getTotal('tax') /
+      that.items.getTotal('endPrice') * 100 ||
+      0
+      ).toFixed(1);
   };
 
   that.saveInvoice = function () {
