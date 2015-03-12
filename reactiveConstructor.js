@@ -212,6 +212,7 @@ ReactiveConstructor = function( passedClass ) {
 
 			// If it's niot an array, and not a String/Number or Boolean,
 			// don't return anything.
+			// BUG IN <IE9, .name does not work!
 			if (val.name.search(/String|Number|Boolean/g) < 0)
 				return ;
 
