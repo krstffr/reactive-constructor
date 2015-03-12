@@ -60,6 +60,33 @@ Tinytest.add('Invoice – Init constructors with some params', function ( test 
 
 });
 
+Tinytest.add('Person – Init persons with references to other Person', function ( test ) {
+
+	var testPersonWithChild = new Person({
+		children: [ new Person() ]
+	});
+
+	var testWife = new Person({
+		rcType: 'wife',
+		happy: true
+	});
+
+	var testHusband = new Person({
+		rcType: 'husband',
+		wife: testWife
+	});
+
+	test.isTrue( testPersonWithChild.getReactiveValue('children')[0] instanceof Person );
+	test.isTrue( testHusband.getReactiveValue('wife') instanceof Person );
+	test.isTrue( testHusband.getReactiveValue('wife').getReactiveValue('happy') );
+
+	testWife.setReactiveValue('happy', false);
+
+	test.isFalse( testHusband.getReactiveValue('wife').getReactiveValue('happy') );
+	test.isFalse( testWife.getReactiveValue('happy') );
+
+});
+
 Tinytest.add('Person – Init person with "child" type', function ( test ) {
 	
 	var testChild = new Person({ rcType: 'child' });
@@ -124,9 +151,9 @@ Tinytest.add('Invoice – Test some methods', function ( test ) {
   var tax       = 30;
 
   var newItem = new InvoiceListItem({
-  	units: units,
-  	unitPrice: unitPrice,
-  	tax: tax
+		units: units,
+		unitPrice: unitPrice,
+		tax: tax
   });
 
   var items = testInvoice.getReactiveValue('items');
@@ -136,26 +163,6 @@ Tinytest.add('Invoice – Test some methods', function ( test ) {
   // Test both methods again.
   test.equal( testInvoice.items.getTotal('endPrice'), units * unitPrice );
   test.equal( testInvoice.items.getTotal('tax'), testInvoice.items.getTotal('endPrice') * tax / 100 );
-
-});
-
-Tinytest.add('setupTypeStructureFields() – self referencing should work', function ( test ) {
-	
-	var testInvoice = new Invoice();
-
-	var testStructure = {
-		selfRefence: ['self'],
-		aString: String,
-		num: Number,
-		referenceToOtherConstructor: [ InvoiceListItem ]
-	};
-
-	var resultStructure = testInvoice.setupTypeStructureFields( testStructure );
-
-	test.equal( resultStructure.selfRefence[0], Invoice );
-	test.equal( resultStructure.aString, String );
-	test.equal( resultStructure.num, Number );
-	test.equal( resultStructure.referenceToOtherConstructor[0], InvoiceListItem );
 
 });
 

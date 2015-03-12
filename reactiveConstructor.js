@@ -38,39 +38,6 @@ ReactiveConstructor = function( passedClass ) {
 
 
 
-
-	// Make typeStructure able to reference itself basically.
-	// Iterate over all the passed fields, and change ['self'] to [passedClass]
-	// to make the type refer to the passedClass
-	passedClass.prototype.setupTypeStructureFields = function ( typeStructureFields ) {
-
-		// Also add the rcType to the OK fields
-		// typeStructureFields.rcType = String;
-
-		return _.mapValues( typeStructureFields, function ( value ) {
-
-			if ( value === 'self') {
-				console.log('TODO: value of: "self" this need to be made recursive!');
-				return String;
-			}
-
-			// If it's not an array, skip this
-			if ( Match.test(value, Array) ) {
-				// Exchange any array values which might be 'self' to passedClass
-				value = _.map(value, function( arrayItem ){
-					if (arrayItem === 'self')
-						return passedClass;
-					return arrayItem;
-				});
-			}
-
-			// Return the value to the typeStructure
-			return value;
-			
-		});
-
-	};
-
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
 	// TODO: How to make this more testable?
@@ -95,7 +62,7 @@ ReactiveConstructor = function( passedClass ) {
 
 		// Make sure the passed value has the correct type
 		if (!this.checkReactiveValueType( key, value ))
-			throw new Meteor.Error("reactiveData-wrong-type", "Error");
+			throw new Meteor.Error('reactiveData-wrong-type', 'Error');
 		
 		// Get all the data
 		var reactiveData = this.reactiveData.get();
@@ -108,7 +75,7 @@ ReactiveConstructor = function( passedClass ) {
 
 		// Check the entire stucture of the data
 		if (!this.checkReactiveValues())
-			throw new Meteor.Error("reactiveData-wrong-structure", "Error");
+			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
 
 		// return the newly set value!
 		return value;
@@ -131,8 +98,28 @@ ReactiveConstructor = function( passedClass ) {
 
 	// Check the entire structure of the reactive data.
 	passedClass.prototype.checkReactiveValues = function () {
-		check(this.reactiveData.get(), this.getCurrentTypeStructure() );
+
+		// We need to allow the existence of unset values,
+		// for examples if a Person has a father field of type
+		// Person, this field must be able to be empty.
+		// So here we get all the keys which have a value, which
+		// we later use to typecheck.
+		var keysToCheck  = _.chain(this.reactiveData.get())
+		.map( function( value, key ){
+			if (value === undefined)
+				return false;
+			return key;
+		})
+		.compact()
+		.value();
+
+		check(
+			_.pick( this.reactiveData.get(), keysToCheck ),
+			_.pick( this.getCurrentTypeStructure(), keysToCheck )
+			);
+
 		return true;
+
 	};
 
 	// Method for returning the entire object as only the reactive
@@ -223,6 +210,11 @@ ReactiveConstructor = function( passedClass ) {
 			if ( Match.test( val, Array ) )
 				return [];
 
+			// If it's niot an array, and not a String/Number or Boolean,
+			// don't return anything.
+			if (val.name.search(/String|Number|Boolean/g) < 0)
+				return ;
+
 			// Create a new default object from the type.
 			// For example: a new String() or a new Number().
 			// (or whatever constructor function has been passed).
@@ -233,9 +225,8 @@ ReactiveConstructor = function( passedClass ) {
 			if ( Match.test( initVal.valueOf, Function ) )
 				return initVal.valueOf();
 
-			// Else just return the object which was created from the class
-			// constructor function.
-			return initVal;
+			// If there is not, something is wrong!
+			throw new Meteor.Error('setup-init-value-missing-method', val + ' has no valueOf() method!');
 
 		});
 
@@ -255,7 +246,7 @@ ReactiveConstructor = function( passedClass ) {
 
 		// Make sure the type is actually defined!
 		if (!_.findWhere( this.typeStructure, { type: typeValue }))
-			throw new Meteor.Error("reactiveData-wrong-type", "There is no type: "+typeValue+"!");
+			throw new Meteor.Error('reactiveData-wrong-type', 'There is no type: '+typeValue+'!');
 
 		this[ typeKey ] = typeValue;
 
@@ -283,13 +274,6 @@ ReactiveConstructor = function( passedClass ) {
 		if (this.initData && this.initData[ typeKey ])
 			delete this.initData[ typeKey ];
 
-		// Make the ['self'] field work, meaning that a field set to
-		// = ['self'] should really reference itself.
-		this.typeStructure = _.map( this.typeStructure, function ( val ) {
-			val.fields = that.setupTypeStructureFields( val.fields );
-			return val;
-		});
-
 		// Setup the init data, setting default data and bare data
 		// (Strings should be set to "" and numbers to 0 if no default or init value is set)
 		var initData = this.setupInitValues( this.initData );
@@ -307,7 +291,7 @@ ReactiveConstructor = function( passedClass ) {
 		delete this.initData;
 
 		if (!this.checkReactiveValues())
-			throw new Meteor.Error("reactiveData-wrong-structure", "Error");
+			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
 
 		return true;
 
