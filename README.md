@@ -1,4 +1,6 @@
-# reactive-constructor [![Build Status](https://travis-ci.org/krstffr/reactive-constructor.svg)](https://travis-ci.org/krstffr/reactive-constructor)
+# reactive-constructor 
+
+[![Build Status](https://travis-ci.org/krstffr/reactive-constructor.svg)](https://travis-ci.org/krstffr/reactive-constructor)
 
 This is a package for creating reactive-by-default objects.
 
