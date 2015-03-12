@@ -1,10 +1,10 @@
-# reactive-constructor 
+# reactive-constructor [![Build Status](https://travis-ci.org/krstffr/reactive-constructor.svg)](https://travis-ci.org/krstffr/reactive-constructor)
 
-[![Build Status](https://travis-ci.org/krstffr/reactive-constructor.svg)](https://travis-ci.org/krstffr/reactive-constructor)
+Meteor.js package for creating reactive-by-default objects.
 
-This is a package for creating reactive-by-default objects.
+## An example
 
-And what does that mean? Basically that the objects created from your reactive constructors get specific set and get methods which enable reactivity. These methods (which are the methods you'll use the most) are ```getReactiveValue( key )``` and ```setReactiveValue( key, newValue )```.
+What does "reactive-by-default objects" mean? Basically that the objects created from your reactive constructors get specific set and get methods which enable reactivity. These methods (which are the methods you'll use the most) are ```getReactiveValue( key )``` and ```setReactiveValue( key, newValue )```.
 
 In short: create a reactive constructor, and every instance created from it will get these two methods!
 
@@ -49,7 +49,7 @@ console.log( instance1.getReactiveValue('name') );
 
 ```
 
-## Example 1, a reactive invoice object
+## Another example: a reactive invoice object
 
 Let's say you have an ```Invoice``` object, which in turn has a couple of ```InvoiceListItem``` objects in it which has a ```name```, a ```price``` and a ```tax``` property. Let's say you want that Invoice object to automatically compute the sum of all the items ```price``` and ```tax``` values, and always has this value up to date no matter when an individual Item object is added, removed or changed. 
 
