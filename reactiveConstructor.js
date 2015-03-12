@@ -62,7 +62,7 @@ ReactiveConstructor = function( passedClass ) {
 
 		// Make sure the passed value has the correct type
 		if (!this.checkReactiveValueType( key, value ))
-			throw new Meteor.Error("reactiveData-wrong-type", "Error");
+			throw new Meteor.Error('reactiveData-wrong-type', 'Error');
 		
 		// Get all the data
 		var reactiveData = this.reactiveData.get();
@@ -75,7 +75,7 @@ ReactiveConstructor = function( passedClass ) {
 
 		// Check the entire stucture of the data
 		if (!this.checkReactiveValues())
-			throw new Meteor.Error("reactiveData-wrong-structure", "Error");
+			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
 
 		// return the newly set value!
 		return value;
@@ -226,7 +226,7 @@ ReactiveConstructor = function( passedClass ) {
 				return initVal.valueOf();
 
 			// If there is not, something is wrong!
-			throw new Meteor.Error("setup-init-value-missing-method", val + " has no valueOf() method!");
+			throw new Meteor.Error('setup-init-value-missing-method', val + ' has no valueOf() method!');
 
 		});
 
@@ -246,7 +246,7 @@ ReactiveConstructor = function( passedClass ) {
 
 		// Make sure the type is actually defined!
 		if (!_.findWhere( this.typeStructure, { type: typeValue }))
-			throw new Meteor.Error("reactiveData-wrong-type", "There is no type: "+typeValue+"!");
+			throw new Meteor.Error('reactiveData-wrong-type', 'There is no type: '+typeValue+'!');
 
 		this[ typeKey ] = typeValue;
 
@@ -291,7 +291,7 @@ ReactiveConstructor = function( passedClass ) {
 		delete this.initData;
 
 		if (!this.checkReactiveValues())
-			throw new Meteor.Error("reactiveData-wrong-structure", "Error");
+			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
 
 		return true;
 
