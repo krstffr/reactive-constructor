@@ -11,7 +11,7 @@ Person = new ReactiveConstructor(function Person( initData ) {
       name: String,
       title: String,
       age: Number,
-      children: ['self']
+      children: [ Person ]
     },
     defaultData: {
       name: 'Kristoffer Klintberg',
@@ -20,10 +20,20 @@ Person = new ReactiveConstructor(function Person( initData ) {
       children: []
     }
   }, {
+    type: 'husband',
+    fields: {
+      wife: Person
+    }
+  }, {
+    type: 'wife',
+    fields: {
+      happy: Boolean
+    }
+  }, {
     type: 'child',
     fields: {
       age: Number,
-      parents: ['self']
+      parents: [ Person ]
     },
     methods: {
       isTeenager: function () {
@@ -87,7 +97,7 @@ Invoice = new ReactiveConstructor(function Invoice ( initData ) {
       currency: String,
       items: [InvoiceListItem],
       client: Client,
-      invoices: ['self'],
+      invoices: [ Person ],
       superCool: Boolean
     },
     defaultData: {
