@@ -1,6 +1,8 @@
 # reactive-constructor [![Build Status](https://travis-ci.org/krstffr/reactive-constructor.svg)](https://travis-ci.org/krstffr/reactive-constructor)
 
-This is a package for creating reactive-by-default objects. And what does that mean? Basically that the objects created from your reactive constructors get specific set and get methods which enable reactivity. These methods (which are the methods you'll use the most) are ```getReactiveValue( key )``` and ```setReactiveValue( key, newValue )```.
+This is a package for creating reactive-by-default objects.
+
+And what does that mean? Basically that the objects created from your reactive constructors get specific set and get methods which enable reactivity. These methods (which are the methods you'll use the most) are ```getReactiveValue( key )``` and ```setReactiveValue( key, newValue )```.
 
 In short: create a reactive constructor, and every instance created from it will get these two methods!
 
