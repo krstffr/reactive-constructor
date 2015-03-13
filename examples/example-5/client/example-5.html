@@ -1,0 +1,88 @@
+<head>
+  <title>testing</title>
+</head>
+
+<body>
+
+  {{> schedule }}
+
+</body>
+
+<template name="schedule">
+
+	{{#with schedule }}
+
+		<div class="no-print">
+
+			<h1>Setup schedule</h1>
+
+			<div class="interative-part">
+
+				<p>Start date: <strong>{{ formatReactiveDate 'startDate' }}</strong></p>
+				<button class="set-start-date">Change start date.</button>
+
+			</div>
+
+			<div class="interative-part">
+
+				<p>Weeks/row: <strong>{{ getReactiveValue 'weeksPerRow' }}</strong></p>
+				<button class="set-weeks-per-row">Change weeks/row</button>
+
+			</div>
+
+			<div class="interative-part">
+
+				<p>Rows: <strong>{{ getReactiveValue 'rows' }}</strong></p>
+				<button class="set-rows">Change rows</button>
+
+			</div>
+
+			<div class="interative-part">
+
+				<p>People: <strong>{{ getReactiveValue 'people' }}</strong></p>
+				<button class="set-people">Change people</button>
+
+			</div>
+
+			<div class="interative-part">
+
+				<p><strong>Print!</strong></p>
+				<button class="do-print-schedule">Print this schedule!</button>
+
+			</div>
+
+		</div>
+
+		<div class="print">
+
+			<h1>Cleaning schedule for stairs</h1>
+
+			<table>
+
+				<tr>
+					<th>Date</th>
+					<th>Responsible cleaner</th>
+					<th>Done? Signature and date</th>
+				</tr>
+
+				{{#each getRows }}
+
+					<tr>
+						<td>{{ formatDate startDate }} – {{ formatDate endDate }}</td>
+						<td>{{ personToClean }}</td>
+						<td></td>
+					</tr>
+
+				{{/each}}
+
+			</table>
+
+		</div>
+
+	{{/with}}
+
+	<div class="footer">
+		Built by Kristoffer Klintberg, visist www.newdocument.io for more info.
+	</div>
+	
+</template>

@@ -1,0 +1,79 @@
+/* Actual styles */
+
+body {
+  font-size: 11px;
+  font-family: Helvetica, sans-serif;
+  padding: 0;
+  margin: 0;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2em;
+  padding: 1.5em 0 1em;
+  font-weight: bold;
+}
+
+p {
+  padding: 0 0 0.3em;
+}
+
+strong {
+  font-weight: bold;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  padding: 0.7em 0;
+  font-weight: bold;
+}
+
+td {
+  border: 2px solid #ddd;
+  padding: 1em 0.7em 0.7em;
+  width: 33%;
+}
+
+.no-print {
+  background: #D0F9EB;
+  border-bottom: 1px dashed #aaa;
+  padding: 0 1em 3em;
+  overflow: hidden;
+  box-shadow: 0 -32px 30px -30px rgba(0,0,0,0.2) inset;
+}
+
+.print {
+  padding: 2em 4em 3em;
+}
+
+.interative-part {
+  font-size: 1.3em;
+  width: 20%;
+  float: left;
+  text-align: center;
+}
+
+.footer {
+  text-align: center;
+  padding: 2em 1em 7em;
+  font-style: italic;
+  color: #ccc;
+}
+
+@media print
+{    
+  .no-print,
+  .no-print *,
+  .footer,
+  .footer *
+  {
+    display: none !important;
+  }
+  .print {
+    padding: 0;
+  }
+}
