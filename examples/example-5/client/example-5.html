@@ -1,5 +1,6 @@
 <head>
-  <title>testing</title>
+  <title>Stair-cleaning-scheduler</title>
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
@@ -14,40 +15,46 @@
 
 		<div class="no-print">
 
-			<h1>Setup schedule</h1>
+			<div class="lang-switches">
+				{{#each languages }}
+					<a class="lang-switch">{{ en }}</a>
+				{{/each}}
+			</div>
+
+			<h1>{{_ "headline_setup" }}</h1>
 
 			<div class="interative-part">
 
-				<p>Start date: <strong>{{ formatReactiveDate 'startDate' }}</strong></p>
-				<button class="set-start-date">Change start date.</button>
+				<p>{{_ "start_date" }}: <strong>{{ formatReactiveDate 'startDate' }}</strong></p>
+				<button class="set-start-date">{{_ "start_date_button" }}</button>
 
 			</div>
 
 			<div class="interative-part">
 
-				<p>Weeks/row: <strong>{{ getReactiveValue 'weeksPerRow' }}</strong></p>
-				<button class="set-weeks-per-row">Change weeks/row</button>
+				<p>{{_ "weeks_per_row" }}: <strong>{{ getReactiveValue 'weeksPerRow' }}</strong></p>
+				<button class="set-weeks-per-row">{{_ "weeks_per_row_button" }}</button>
 
 			</div>
 
 			<div class="interative-part">
 
-				<p>Rows: <strong>{{ getReactiveValue 'rows' }}</strong></p>
-				<button class="set-rows">Change rows</button>
+				<p>{{_ "rows" }}: <strong>{{ getReactiveValue 'rows' }}</strong></p>
+				<button class="set-rows">{{_ "rows_button" }}</button>
 
 			</div>
 
 			<div class="interative-part">
 
-				<p>People: <strong>{{ getReactiveValue 'people' }}</strong></p>
-				<button class="set-people">Change people</button>
+				<p>{{_ "people" }}: <strong>{{ getReactiveValue 'people' }}</strong></p>
+				<button class="set-people">{{_ "people_button" }}</button>
 
 			</div>
 
 			<div class="interative-part">
 
-				<p><strong>Print!</strong></p>
-				<button class="do-print-schedule">Print this schedule!</button>
+				<p><strong>{{_ "print" }}</strong></p>
+				<button class="do-print-schedule">{{_ "print_button" }}</button>
 
 			</div>
 
@@ -55,14 +62,14 @@
 
 		<div class="print">
 
-			<h1>Cleaning schedule for stairs</h1>
+			<h1>{{_ "schedule_headline" }}</h1>
 
 			<table>
 
 				<tr>
-					<th>Date</th>
-					<th>Responsible cleaner</th>
-					<th>Done? Signature and date</th>
+					<th>{{_ "schedule_key_date" }}</th>
+					<th>{{_ "schedule_key_cleaner" }}</th>
+					<th>{{_ "schedule_key_done" }}</th>
 				</tr>
 
 				{{#each getRows }}
@@ -82,7 +89,8 @@
 	{{/with}}
 
 	<div class="footer">
-		Built by Kristoffer Klintberg, visist www.newdocument.io for more info.
+		Built by Kristoffer Klintberg.<br />
+		Visit <a href="http://www.newdocument.io">www.newdocument.io</a> for more info.
 	</div>
 	
 </template>

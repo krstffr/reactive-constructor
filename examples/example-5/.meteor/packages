@@ -8,3 +8,4 @@ meteor-platform
 krstffr:reactive-constructor
 reactive-var
 momentjs:moment
+tap:i18n

@@ -1,3 +1,21 @@
+setLanguage = function ( lang ) {
+  TAPi18n.setLanguage(lang)
+  .done(function () {
+    moment.locale(lang);
+    schedule.setReactiveValue('weeks', schedule.getReactiveValue('weeks') );
+  })
+  .fail(function (error_message) {
+    // Handle the situation
+    console.log(error_message);
+  });
+};
+
+Meteor.startup(function () {
+
+  setLanguage('sv');
+
+});
+
 Schedule = new ReactiveConstructor(function Schedule( initData ) {
 
   this.initData = initData || {};
@@ -80,27 +98,27 @@ Template.schedule.helpers({
     var date = this.getReactiveValue( reactiveKey );
     return formatDate( date );
   },
+  languages: function () {
+    return _( TAPi18n.getLanguages() ).toArray();
+  }
 });
 
 // Some template events
 Template.schedule.events({
   'click .set-start-date': function () {
-    var userInput = prompt('What start date? Examples: 2015-03-25, 25 mars 2015.');
+    var userInput = prompt( TAPi18n.__('prompt_change_date') );
     if (!userInput)
       return false;
     this.setReactiveValue('startDate', new Date( userInput ) );
   },
   'click .set-weeks-per-row': function () {
-    var userInput = prompt('How many weeks per row?');
+    var userInput = prompt( TAPi18n.__('prompt_change_weeks_per_row') );
     if (!userInput)
       return false;
     this.setReactiveValue('weeksPerRow', parseInt( userInput, 10 ) );
   },
   'click .set-people': function () {
-    var userInput = prompt(
-      'How should clean the stairs? (comma separated)',
-      this.getReactiveValue('people')
-      );
+    var userInput = prompt( TAPi18n.__('prompt_change_people'), this.getReactiveValue('people') );
 
     if (!userInput)
       return false;
@@ -108,12 +126,15 @@ Template.schedule.events({
     this.setReactiveValue('people', userInput );
   },
   'click .set-rows': function () {
-    var userInput = prompt('How many rows you need?');
+    var userInput = prompt( TAPi18n.__('prompt_change_rows') );
     if (!userInput)
       return false;
     this.setReactiveValue('rows', parseInt( userInput, 10 ) );
   },
   'click .do-print-schedule': function () {
     return window.print();
+  },
+  'click .lang-switch': function () {
+    setLanguage( this.name.toLowerCase().substr(0,2) );
   }
 });
