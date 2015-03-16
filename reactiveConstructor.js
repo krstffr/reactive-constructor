@@ -4,40 +4,6 @@ ReactiveConstructor = function( passedClass ) {
 
 	var that = this;
 
-	// TODO: This should probably be moved to the CMS-thing!
-	// Method for returning the type of an item as a string.
-	that.getTypeOfStructureItem = function ( item ) {
-		// Does the item actaully have a name?
-		// Then it's probably a String or a Number or a Boolean, return it
-		if (item.name)
-			return item.name;
-
-		// Is it an array?
-		if ( Match.test( item, Array ) ) {
-			
-			// Does it have any items?
-			if (item.length > 1)
-				return 'Array';
-
-			return 'Collection_'+item[0].name;
-		}
-	};
-
-	// TODO: This should probably be moved to the CMS-thing!
-	// Method for returning the data for the CMS frontend basically
-	passedClass.prototype.getReactiveValuesAsArray = function () {
-		var typeStructure = this.getCurrentTypeStructure();
-		return _.map( this.reactiveData.get(), function( value, key ) {
-			return {
-				key: key,
-				value: value,
-				type: that.getTypeOfStructureItem( typeStructure[key] )
-			};
-		});
-	};
-
-
-
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
 	// TODO: How to make this more testable?
@@ -262,10 +228,30 @@ ReactiveConstructor = function( passedClass ) {
 		return this[ typeKey ];
 	};
 
+
+	// Method for running plugins' init methods
+	that.initPlugins = function ( instance ) {
+
+		if (!ReactiveConstructorPlugins)
+			return false;
+
+		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
+			
+			// Run all plugin initClass on class
+			if ( Match.test( RCPlugin.options.initClass, Function ) )
+				passedClass = RCPlugin.options.initClass( passedClass );
+
+			// Run initInstance method on this instance
+			if ( Match.test( RCPlugin.options.initInstance, Function ) )
+				instance = RCPlugin.options.initInstance( instance );
+		
+		});
+		
+	};
+
+
 	// Method for initiating the ReactiveConstructor.
 	passedClass.prototype.initReactiveValues = function () {
-
-		var that = this;
 
 		// Setup the type of this constructor
 		this.setType( this.initData );
@@ -279,6 +265,9 @@ ReactiveConstructor = function( passedClass ) {
 		// (Strings should be set to "" and numbers to 0 if no default or init value is set)
 		var initData = this.setupInitValues( this.initData );
 		initData = this.prepareDataToCorrectTypes( initData );
+
+		// Init all plugins
+		that.initPlugins( this );
 
 		// Set the reactiveData source for this object.
 		this.reactiveData = new ReactiveVar( initData );
