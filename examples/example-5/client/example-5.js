@@ -4,9 +4,8 @@ setLanguage = function ( lang ) {
     moment.locale(lang);
     schedule.setReactiveValue('weeks', schedule.getReactiveValue('weeks') );
   })
-  .fail(function (error_message) {
-    // Handle the situation
-    console.log(error_message);
+  .fail(function ( errorMessage ) {
+    console.log( errorMessage );
   });
 };
 
