@@ -147,12 +147,12 @@ ReactiveConstructor = function( passedClass ) {
 
 			// Is it a "plain" object? Then transform it into a non-plain
 			// from the type provided in the typeStructure!
-			if ( Match.test( value, Object ) && ReactiveConstructors[ valueType.name ] )
+			if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.name ] )
 				return new ReactiveConstructors[ valueType.name ]( value );
 
 			// If the value is a string, and there is a window object with this name,
 			// create a new instance from it!
-			if ( Match.test( value, String ) && window[ valueType.name ] )
+			if ( Match.test( value, String ) && valueType && window[ valueType.name ] )
 				return new window[ valueType.name ]( value );
 
 			return value;
