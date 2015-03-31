@@ -17,8 +17,8 @@ Tinytest.add('Person - Init constructors without params', function ( test ) {
 		// Make sure the defaults values are correct.
 		// Also make sure you can get the reactive values of these and
 		// that those are correct.
-		test.equal( testPerson.getDataAsObject()[key], defaultData[key] );
-		test.equal( testPerson.getReactiveValue(key), defaultData[key] );
+		test.equal( testPerson.getDataAsObject()[key].toString(), defaultData[key].toString() );
+		test.equal( testPerson.getReactiveValue(key).toString(), defaultData[key].toString() );
 
 	});
 
@@ -34,7 +34,7 @@ Tinytest.add('Invoice - Init constructors without params', function ( test ) {
 	_.each(defaultDataKeys, function( key ){
 
 		// Make sure the defaults values are correct.
-		test.equal( testInvoice.getReactiveValue(key), defaultData[key] );
+		test.equal( testInvoice.getReactiveValue(key).toString(), defaultData[key].toString() );
 
 	});
 
