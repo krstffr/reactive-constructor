@@ -461,7 +461,7 @@ Tinytest.add('getDefaultValues()', function ( test ) {
 	
 	var testPerson = new Person();
 
-	test.equal( testPerson.getDefaultValues(), new Person().typeStructure[0].defaultData );
+	test.equal( testPerson.getDefaultValues().toString(), new Person().typeStructure[0].defaultData.toString() );
 
 });
 
