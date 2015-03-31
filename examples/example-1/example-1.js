@@ -74,21 +74,6 @@ Person = new ReactiveConstructor(function Person( initData ) {
 
 });
 
-
-person = new Person({ name: 'Stoffe K' });
-
-person2 = new Person({ age: 17, rcType: 'child' });
-console.log( 'Person2 is now ' + person2.getAgePlus(0));
-console.log( ' and he/she will be: ' + person2.getAgePlus( 3 ) + ' in three years!' );
-console.log( 'Person2 is a teenager: ' + person2.isTeenager() );
-console.log( 'Person2 ages six years and is now: ' + person2.addYears( 6 ) );
-console.log( 'Person2 is a teenager after the six years? ' + person2.isTeenager() );
-console.log( 'Person1 should not have a isTeenager method!');
-console.log( 'typeof is: ' + typeof person.isTeenager );
-
-person3 = new Person({ age: 50, rcType: 'child' });
-// person4 = new Person();
-
 Client = new ReactiveConstructor( function Client( initData ) {
 
   var that = this;
@@ -100,9 +85,9 @@ Client = new ReactiveConstructor( function Client( initData ) {
     fields: {
       clientName: String,
       adressStreet: String,
-      staff: [ Person ],
-      mainClient: Client,
-      otherClients: [ Client ]
+      // staff: [ Person ],
+      // mainClient: Client
+      // otherClients: [ Client ]
     }
   }];
 
@@ -112,10 +97,9 @@ Client = new ReactiveConstructor( function Client( initData ) {
 
 client = new Client();
 
-client.setReactiveValue('mainClient', new Client() );
-client.setReactiveValue('otherClients', [ new Client(), new Client() ] );
+// client.setReactiveValue('mainClient', new Client() );
 
-client.setReactiveValue('staff', [ person ] );
+// client.setReactiveValue('staff', [ person ] );
 
 InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) {
 
@@ -174,8 +158,8 @@ Invoice = new ReactiveConstructor(function Invoice ( initData ) {
       invoiceName: String,
       currency: String,
       items: [ InvoiceListItem ],
+      reference: String,
       client: Client,
-      invoices: [ Invoice ],
       superCool: Boolean
     },
     defaultData: {
@@ -215,9 +199,25 @@ Invoice = new ReactiveConstructor(function Invoice ( initData ) {
 
 invoice1 = new Invoice({ invoiceName: 'KK666', items: [ new InvoiceListItem() ] });
 
-invoice1.setReactiveValue('client', client );
+// invoice1.setReactiveValue('client', client );
 
 invoices = new ReactiveVar( [ invoice1 ] );
+
+person = new Person({ name: 'Stoffe K' });
+
+person2 = new Person({ age: 17, rcType: 'child' });
+console.log( 'Person2 is now ' + person2.getAgePlus(0));
+console.log( ' and he/she will be: ' + person2.getAgePlus( 3 ) + ' in three years!' );
+console.log( 'Person2 is a teenager: ' + person2.isTeenager() );
+console.log( 'Person2 ages six years and is now: ' + person2.addYears( 6 ) );
+console.log( 'Person2 is a teenager after the six years? ' + person2.isTeenager() );
+console.log( 'Person1 should not have a isTeenager method!');
+console.log( 'typeof is: ' + typeof person.isTeenager );
+
+person3 = new Person({ age: 50, rcType: 'child' });
+// person4 = new Person();
+
+var person4 = new Person({ age: 50, rcType: 'worker', children: [{ age: 25, rcType: 'child' }] });
 
 Template.invoiceTestTemplate.helpers({
   person: function () {
@@ -234,111 +234,12 @@ Template.invoiceTestTemplate.helpers({
   }
 });
 
-Handlebars.registerHelper('getTemplateFromType', function () {
-
-  if (!this.type || !this.key)
-    return 'editTemplate';
-
-  // Is it a string? Return the basic template
-  if (this.type === 'String' || this.type === 'Number')
-    return 'editTemplate__String';
-
-  // Is it a boolean?
-  if (this.type === 'Boolean')
-    return 'editTemplate__Boolean';
-
-  // Is it a collection of items?
-  if (this.type.search(/Collection_/g) > -1)
-    return 'editTemplate__Collection';
-
-  if (!this.value)
-    return false;
-
-  return 'editTemplate';
-
-});
-
-Handlebars.registerHelper('equals', function(a, b) {
-  return a === b;
-});
-
-Template.editTemplate.helpers({
-  data: function () {
-
-    // The default values should return the value of this
-    if (this.type.search(/String|Number|Boolean/g) > -1)
-      return this;
-    
-    // Collections should return the value of this
-    if (this.type.search(/Collection_/g) > -1)
-      return this;
-
-    // Else the "actual value" should be returned!
-    return this.value;
-
-  },
-  className: function () {
-    return this.constructor.name;
-  }
-});
-
 Template.invoiceTestTemplate.events({
-  'click .edit-invoice': function ( e, tmpl ) {
+  'click .edit-instance': function ( e, tmpl ) {
 
     e.stopImmediatePropagation();
 
-    Blaze.renderWithData( Template.editTemplate, this, document.body );
+    this.editPageGet();
 
   }
 });
-
-Template.editTemplate.events({
-  'click .save': function () {
-    return this.saveInvoice();
-  },
-  // Method for adding new items to a collection
-  'click .temp-add-new-coll-item': function ( e ) {
-
-    e.stopImmediatePropagation();
-
-    var newItem = new window[this.type.replace(/Collection_/g, '')]();
-
-    var items = Template.currentData().getReactiveValue( this.key );
-    
-    items.push( newItem );
-
-    Template.currentData().setReactiveValue( this.key, items );
-
-  },
-  // Method for updating the value of a property on keyup!
-  'blur input': function ( e ) {
-
-    e.stopImmediatePropagation();
-    var value = $(e.currentTarget).val();
-
-    if (this.type === 'Number')
-      value = parseFloat( value, 10 );
-
-    Template.currentData().setReactiveValue( this.key, value );
-
-  },
-  // Method for boolean values
-  'change .TEMP-bool-select': function ( e ) {
-
-    e.stopImmediatePropagation();
-    
-    var value = $(e.currentTarget).val();
-    
-    Template.currentData().setReactiveValue( this.key, value === 'true' );
-
-  }
-});
-
-
-
-
-
-
-
-
-

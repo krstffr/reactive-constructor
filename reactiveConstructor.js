@@ -1,42 +1,11 @@
 var typeKey = 'rcType';
 
+// Holder for all current constructors
+ReactiveConstructors = {};
+
 ReactiveConstructor = function( passedClass ) {
 
 	var that = this;
-
-	// TODO: This should probably be moved to the CMS-thing!
-	// Method for returning the type of an item as a string.
-	that.getTypeOfStructureItem = function ( item ) {
-		// Does the item actaully have a name?
-		// Then it's probably a String or a Number or a Boolean, return it
-		if (item.name)
-			return item.name;
-
-		// Is it an array?
-		if ( Match.test( item, Array ) ) {
-			
-			// Does it have any items?
-			if (item.length > 1)
-				return 'Array';
-
-			return 'Collection_'+item[0].name;
-		}
-	};
-
-	// TODO: This should probably be moved to the CMS-thing!
-	// Method for returning the data for the CMS frontend basically
-	passedClass.prototype.getReactiveValuesAsArray = function () {
-		var typeStructure = this.getCurrentTypeStructure();
-		return _.map( this.reactiveData.get(), function( value, key ) {
-			return {
-				key: key,
-				value: value,
-				type: that.getTypeOfStructureItem( typeStructure[key] )
-			};
-		});
-	};
-
-
 
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
@@ -170,15 +139,20 @@ ReactiveConstructor = function( passedClass ) {
 					// Is it a "plain" object? Then transform it into a non-plain
 					// from the type provided in the typeStructure!
 					// Else just return the current array value
-					if ( Match.test( arrayVal, Object ) )
-						return new window[ valueType[ 0 ].name ]( arrayVal );
+					if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[ 0 ].name ] )
+						return new ReactiveConstructors[ valueType[ 0 ].name ]( arrayVal );
 					return arrayVal;
 				});
 			}
 
 			// Is it a "plain" object? Then transform it into a non-plain
 			// from the type provided in the typeStructure!
-			if ( Match.test( value, Object ) )
+			if ( Match.test( value, Object ) && ReactiveConstructors[ valueType.name ] )
+				return new ReactiveConstructors[ valueType.name ]( value );
+
+			// If the value is a string, and there is a window object with this name,
+			// create a new instance from it!
+			if ( Match.test( value, String ) && window[ valueType.name ] )
 				return new window[ valueType.name ]( value );
 
 			return value;
@@ -262,10 +236,30 @@ ReactiveConstructor = function( passedClass ) {
 		return this[ typeKey ];
 	};
 
+
+	// Method for running plugins' init methods
+	that.initPlugins = function ( instance ) {
+
+		if (!ReactiveConstructorPlugins)
+			return false;
+
+		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
+			
+			// Run all plugin initClass on class
+			if ( Match.test( RCPlugin.options.initClass, Function ) )
+				passedClass = RCPlugin.options.initClass( passedClass );
+
+			// Run initInstance method on this instance
+			if ( Match.test( RCPlugin.options.initInstance, Function ) )
+				instance = RCPlugin.options.initInstance( instance );
+		
+		});
+		
+	};
+
+
 	// Method for initiating the ReactiveConstructor.
 	passedClass.prototype.initReactiveValues = function () {
-
-		var that = this;
 
 		// Setup the type of this constructor
 		this.setType( this.initData );
@@ -279,6 +273,9 @@ ReactiveConstructor = function( passedClass ) {
 		// (Strings should be set to "" and numbers to 0 if no default or init value is set)
 		var initData = this.setupInitValues( this.initData );
 		initData = this.prepareDataToCorrectTypes( initData );
+
+		// Init all plugins
+		that.initPlugins( this );
 
 		// Set the reactiveData source for this object.
 		this.reactiveData = new ReactiveVar( initData );
@@ -297,6 +294,11 @@ ReactiveConstructor = function( passedClass ) {
 		return true;
 
 	};
+
+	// Store the class in the ReactiveConstructors object.
+	// This is so that we can create new instances of these constructors
+	// later when needed!
+	ReactiveConstructors[ passedClass.name ] = passedClass;
 	
 	return passedClass;
 

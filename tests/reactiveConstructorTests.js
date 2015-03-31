@@ -1,4 +1,12 @@
-Tinytest.add('Person – Init constructors without params', function ( test ) {
+Tinytest.add('exported objects', function ( test ) {
+
+	test.equal( typeof ReactiveConstructors, 'object' );
+	test.equal( typeof ReactiveConstructor, 'function' );
+	test.equal( typeof ReactiveConstructorPlugin, 'function' );
+	
+});
+
+Tinytest.add('Person - Init constructors without params', function ( test ) {
 	
 	var defaultData = new Person().typeStructure[0].defaultData;
 	var defaultDataKeys = _( defaultData ).keys();
@@ -9,15 +17,15 @@ Tinytest.add('Person – Init constructors without params', function ( test ) {
 		// Make sure the defaults values are correct.
 		// Also make sure you can get the reactive values of these and
 		// that those are correct.
-		test.equal( testPerson.getDataAsObject()[key], defaultData[key] );
-		test.equal( testPerson.getReactiveValue(key), defaultData[key] );
+		test.equal( testPerson.getDataAsObject()[key].toString(), defaultData[key].toString() );
+		test.equal( testPerson.getReactiveValue(key).toString(), defaultData[key].toString() );
 
 	});
 
 });
 
 
-Tinytest.add('Invoice – Init constructors without params', function ( test ) {
+Tinytest.add('Invoice - Init constructors without params', function ( test ) {
 	
 	var defaultData = new Invoice().typeStructure[0].defaultData;
 	var defaultDataKeys = _( defaultData ).keys();
@@ -26,14 +34,14 @@ Tinytest.add('Invoice – Init constructors without params', function ( test ) 
 	_.each(defaultDataKeys, function( key ){
 
 		// Make sure the defaults values are correct.
-		test.equal( testInvoice.getReactiveValue(key), defaultData[key] );
+		test.equal( testInvoice.getReactiveValue(key).toString(), defaultData[key].toString() );
 
 	});
 
 });
 
 
-Tinytest.add('Invoice – Init constructors with some params', function ( test ) {
+Tinytest.add('Invoice - Init constructors with some params', function ( test ) {
 	
 	var setValues = {
 		invoiceName: 'A name set from here',
@@ -60,7 +68,7 @@ Tinytest.add('Invoice – Init constructors with some params', function ( test 
 
 });
 
-Tinytest.add('Person – Init persons with references to other Person', function ( test ) {
+Tinytest.add('Person - Init persons with references to other Person', function ( test ) {
 
 	var testPersonWithChild = new Person({
 		children: [ new Person() ]
@@ -87,7 +95,48 @@ Tinytest.add('Person – Init persons with references to other Person', function
 
 });
 
-Tinytest.add('Person – Init person with "child" type', function ( test ) {
+
+Tinytest.add('Person - Init persons with references to other Person, plain objects', function ( test ) {
+
+	// An object with lot's of nested children, some with type explicitly defined
+	// and some without (where it will be defined by the first "type")
+	var testPersonWithGrandChildren = new Person({
+		name: 'Grand father',
+		children: [{
+			name: 'Mother',
+			birthDate: 'jan 13 1984',
+			children: [{
+				rcType: 'worker',
+				name: 'Little baby boy child',
+				children: [{
+					rcType: 'worker',
+					name: 'Future grand child'
+				}]
+			}, {
+				rcType: 'worker',
+				name: 'Little baby girl'
+			}]
+		}]
+	});
+
+	var mothers = testPersonWithGrandChildren.getReactiveValue('children');
+
+	test.equal( mothers.length, 1 );
+	test.equal( mothers[0].getReactiveValue('name'), 'Mother' );
+
+	var children = mothers[0].getReactiveValue('children');
+
+	test.equal( children.length, 2 );
+	test.equal( children[1].getReactiveValue('name'), 'Little baby girl' );
+
+	var grandChildren = children[0].getReactiveValue('children');
+
+	test.equal( grandChildren.length, 1 );
+	test.equal( grandChildren[0].getReactiveValue('name'), 'Future grand child' );
+
+});
+
+Tinytest.add('Person - Init person with "child" type', function ( test ) {
 	
 	var testChild = new Person({ rcType: 'child' });
 
@@ -96,7 +145,7 @@ Tinytest.add('Person – Init person with "child" type', function ( test ) {
 
 });
 
-Tinytest.add('Invoice / invoiceListItem – Throw errors when using wrong types', function ( test ) {
+Tinytest.add('Invoice / invoiceListItem - Throw errors when using wrong types', function ( test ) {
 	
 	test.throws(function () {
 		new Invoice({ currency: 1.23 });
@@ -137,7 +186,7 @@ Tinytest.add('Invoice / invoiceListItem – Throw errors when using wrong types
 });
 
 
-Tinytest.add('Invoice – Test some methods', function ( test ) {
+Tinytest.add('Invoice - Test some methods', function ( test ) {
 	
 	var testInvoice = new Invoice();
 
@@ -242,7 +291,7 @@ Tinytest.add('setReactiveValue()', function ( test ) {
 
 });
 
-Tinytest.add('setReactiveValue() – wrong type should throw errors', function ( test ) {
+Tinytest.add('setReactiveValue() - wrong type should throw errors', function ( test ) {
 	
 	var testInvoice = new Invoice();
 
@@ -312,7 +361,7 @@ Tinytest.add('checkReactiveValueType()', function ( test ) {
 
 });
 
-Tinytest.add('checkReactiveValueType() – wrong type should throw errors', function ( test ) {
+Tinytest.add('checkReactiveValueType() - wrong type should throw errors', function ( test ) {
 	
 	var testPerson = new Person();
 
@@ -412,7 +461,7 @@ Tinytest.add('getDefaultValues()', function ( test ) {
 	
 	var testPerson = new Person();
 
-	test.equal( testPerson.getDefaultValues(), new Person().typeStructure[0].defaultData );
+	test.equal( testPerson.getDefaultValues().toString(), new Person().typeStructure[0].defaultData.toString() );
 
 });
 
@@ -441,7 +490,7 @@ Tinytest.add('setType()', function ( test ) {
 
 });
 
-Tinytest.add('setType() – throw error when trying to set a type which is not defined', function ( test ) {
+Tinytest.add('setType() - throw error when trying to set a type which is not defined', function ( test ) {
 	
 	var testClient = new Client();
 

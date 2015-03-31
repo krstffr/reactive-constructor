@@ -10,12 +10,14 @@ Person = new ReactiveConstructor(function Person( initData ) {
     fields: {
       name: String,
       title: String,
+      birthDate: Date,
       age: Number,
       children: [ Person ]
     },
     defaultData: {
       name: 'Kristoffer Klintberg',
       title: 'Designer',
+      birthDate: new Date('2015 01 01'),
       age: 30,
       children: []
     }
