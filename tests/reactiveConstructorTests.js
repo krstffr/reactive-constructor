@@ -104,6 +104,7 @@ Tinytest.add('Person - Init persons with references to other Person, plain objec
 		name: 'Grand father',
 		children: [{
 			name: 'Mother',
+			birthDate: 'jan 13 1984',
 			children: [{
 				rcType: 'worker',
 				name: 'Little baby boy child',

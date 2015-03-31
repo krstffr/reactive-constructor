@@ -139,7 +139,7 @@ ReactiveConstructor = function( passedClass ) {
 					// Is it a "plain" object? Then transform it into a non-plain
 					// from the type provided in the typeStructure!
 					// Else just return the current array value
-					if ( Match.test( arrayVal, Object ) )
+					if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[ 0 ].name ] )
 						return new ReactiveConstructors[ valueType[ 0 ].name ]( arrayVal );
 					return arrayVal;
 				});
@@ -147,8 +147,13 @@ ReactiveConstructor = function( passedClass ) {
 
 			// Is it a "plain" object? Then transform it into a non-plain
 			// from the type provided in the typeStructure!
-			if ( Match.test( value, Object ) )
+			if ( Match.test( value, Object ) && ReactiveConstructors[ valueType.name ] )
 				return new ReactiveConstructors[ valueType.name ]( value );
+
+			// If the value is a string, and there is a window object with this name,
+			// create a new instance from it!
+			if ( Match.test( value, String ) && window[ valueType.name ] )
+				return new window[ valueType.name ]( value );
 
 			return value;
 
