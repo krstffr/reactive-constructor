@@ -298,6 +298,11 @@ ReactiveConstructor = function( passedClass ) {
 	// Store the class in the ReactiveConstructors object.
 	// This is so that we can create new instances of these constructors
 	// later when needed!
+
+	// First: Make sure we're not overwriting an existing class
+	if (ReactiveConstructors[ passedClass.name ])
+		throw new Meteor.Error('reactive-class-already-defined', 'The reactive class' + passedClass.name + ' is already defined!');
+
 	ReactiveConstructors[ passedClass.name ] = passedClass;
 	
 	return passedClass;
