@@ -1,5 +1,8 @@
 var typeKey = 'rcType';
 
+// Holder for all current constructors
+ReactiveConstructors = {};
+
 ReactiveConstructor = function( passedClass ) {
 
 	var that = this;
@@ -136,15 +139,20 @@ ReactiveConstructor = function( passedClass ) {
 					// Is it a "plain" object? Then transform it into a non-plain
 					// from the type provided in the typeStructure!
 					// Else just return the current array value
-					if ( Match.test( arrayVal, Object ) )
-						return new window[ valueType[ 0 ].name ]( arrayVal );
+					if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[ 0 ].name ] )
+						return new ReactiveConstructors[ valueType[ 0 ].name ]( arrayVal );
 					return arrayVal;
 				});
 			}
 
 			// Is it a "plain" object? Then transform it into a non-plain
 			// from the type provided in the typeStructure!
-			if ( Match.test( value, Object ) )
+			if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.name ] )
+				return new ReactiveConstructors[ valueType.name ]( value );
+
+			// If the value is a string, and there is a window object with this name,
+			// create a new instance from it!
+			if ( Match.test( value, String ) && valueType && window[ valueType.name ] )
 				return new window[ valueType.name ]( value );
 
 			return value;
@@ -286,6 +294,11 @@ ReactiveConstructor = function( passedClass ) {
 		return true;
 
 	};
+
+	// Store the class in the ReactiveConstructors object.
+	// This is so that we can create new instances of these constructors
+	// later when needed!
+	ReactiveConstructors[ passedClass.name ] = passedClass;
 	
 	return passedClass;
 
