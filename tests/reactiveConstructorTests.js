@@ -522,3 +522,10 @@ Tinytest.add('getType()', function ( test ) {
 	test.equal( testPerson.getType(), 'child' );
 
 });
+
+Tinytest.add('duplicate constructor name should throw errer', function( test ) {
+	// There is already a Person constructor defined, so this should trow an error
+	test.throws(function() {
+		Person = new ReactiveConstructor( function Person() {});
+	});
+});
