@@ -237,23 +237,37 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 
-	// Method for running plugins' init methods
-	that.initPlugins = function ( instance ) {
+	// Method for running plugins' init methods on INSTANCE
+	that.initPluginsOnInstance = function ( instance ) {
 
 		if (!ReactiveConstructorPlugins)
 			return false;
 
 		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
 			
-			// Run all plugin initClass on class
-			if ( Match.test( RCPlugin.options.initClass, Function ) )
-				passedClass = RCPlugin.options.initClass( passedClass );
-
 			// Run initInstance method on this instance
 			if ( Match.test( RCPlugin.options.initInstance, Function ) )
 				instance = RCPlugin.options.initInstance( instance );
 		
 		});
+		
+	};
+
+	// Method for running plugins' init methods on CONSTRUCTOR
+	var initPluginsOnConstructor = function ( passedConstructor ) {
+
+		if (!ReactiveConstructorPlugins)
+			return false;
+
+		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
+			
+			// Run all plugin initConstructor on class
+			if ( Match.test( RCPlugin.options.initConstructor, Function ) )
+				passedConstructor = RCPlugin.options.initConstructor( passedConstructor );
+		
+		});
+
+		return passedConstructor;
 		
 	};
 
@@ -274,8 +288,8 @@ ReactiveConstructor = function( passedClass ) {
 		var initData = this.setupInitValues( this.initData );
 		initData = this.prepareDataToCorrectTypes( initData );
 
-		// Init all plugins
-		that.initPlugins( this );
+		// Init all plugins on this instance
+		that.initPluginsOnInstance( this );
 
 		// Set the reactiveData source for this object.
 		this.reactiveData = new ReactiveVar( initData );
@@ -294,6 +308,9 @@ ReactiveConstructor = function( passedClass ) {
 		return true;
 
 	};
+
+	// Init all plugins on this constructor
+	passedClass = initPluginsOnConstructor( passedClass );
 
 	// Store the class in the ReactiveConstructors object.
 	// This is so that we can create new instances of these constructors

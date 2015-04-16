@@ -7,9 +7,9 @@ ReactiveConstructorPlugin = function ( options ) {
 	// Make sure options are passed
 	check( options, Object );
 
-	// Make sure initClass is a function
-	if (options.initClass)
-		check( options.initClass, Function );
+	// Make sure initConstructor is a function
+	if (options.initConstructor)
+		check( options.initConstructor, Function );
 
 	// Make sure initInstance is a function
 	if (options.initInstance)
