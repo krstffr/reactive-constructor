@@ -1,6 +1,6 @@
 Package.describe({
 	name: "krstffr:reactive-constructor",
-  summary: "Create reactive objects.",
+  summary: "Create reactive objects from these constructors.",
 	version: "0.0.7"
 });
 
