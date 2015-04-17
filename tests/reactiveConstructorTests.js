@@ -329,6 +329,39 @@ Tinytest.add('getReactiveValue()', function ( test ) {
 	
 });
 
+Tinytest.add('unsetReactiveValue()', function( test ) {
+
+	// Let's get an invoice to test the method on
+	var testInvoice = new Invoice();
+
+	// Let's add a client to the invoice, and make sure we can get it as well
+	var newClient = new Client();
+	testInvoice.setReactiveValue('client', newClient);
+	test.equal( testInvoice.getReactiveValue('client'), newClient );
+
+	// Now let's unset it!
+	testInvoice.unsetReactiveValue('client');
+	test.equal( testInvoice.getReactiveValue('client'), undefined );
+
+	// Let's test some other types of values as well
+	var newValues = {
+		invoiceName: 'new name!',
+		currency: 'US $ Dollars',
+		client: new Client(),
+		items: [ new InvoiceListItem(), new InvoiceListItem() ],
+		superCool: true
+	};
+
+	_.each( newValues, function( value, key ){
+		testInvoice.setReactiveValue( key, value );
+		test.equal( testInvoice.getReactiveValue( key ), value );
+		testInvoice.unsetReactiveValue(key);
+		test.equal( testInvoice.getReactiveValue(key), undefined );
+	});
+
+});
+
+
 Tinytest.add('checkReactiveValueType()', function ( test ) {
 	
 	var testPerson = new Person();

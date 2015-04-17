@@ -26,6 +26,25 @@ ReactiveConstructor = function( passedClass ) {
 		return _.findWhere( this.typeStructure, { type: this.getType() }).fields;
 	};
 
+	// Method for removing a value of a reactive item.
+	passedClass.prototype.unsetReactiveValue = function ( key ) {
+
+		// Get all the data
+		var reactiveData = this.reactiveData.get();
+
+		// Set the key field of the data to the new value
+		reactiveData[ key ] = undefined;
+
+		this.reactiveData.set( reactiveData );
+
+		// Check the entire stucture of the data
+		if (!this.checkReactiveValues())
+			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
+
+		return true;
+
+	};
+
 	// Method for setting the value of a reactive item.
 	passedClass.prototype.setReactiveValue = function ( key, value ) {
 
