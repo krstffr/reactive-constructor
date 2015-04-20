@@ -201,12 +201,14 @@ Animal = new ReactiveConstructor(function Animal ( initData ) {
     fields: {
       numberOfLegs: Number,
       hasBrain: Boolean,
-      canMove: Boolean
+      canMove: Boolean,
+      lifeExpectancyInYears: Number
     },
     defaultData: {
       // This is kind of silly default data, but makes sense sort of?
       hasBrain: true,
-      canMove: true
+      canMove: true,
+      lifeExpectancyInYears: 10
     }
   };
 
@@ -218,7 +220,8 @@ Animal = new ReactiveConstructor(function Animal ( initData ) {
   }, {
     type: 'crippledCat',
     defaultData: {
-      numberOfLegs: 3
+      numberOfLegs: 3,
+      lifeExpectancyInYears: 7
     }
   }, {
     type: 'duck',
@@ -230,7 +233,8 @@ Animal = new ReactiveConstructor(function Animal ( initData ) {
     type: 'amoeba',
     defaultData: {
       hasBrain: false,
-      numberOfLegs: 0
+      numberOfLegs: 0,
+      lifeExpectancyInYears: 0.1
     }
   }];
 

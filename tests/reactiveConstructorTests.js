@@ -590,8 +590,13 @@ Tinytest.add('Global fields - setting (and overwriting) global default values fo
 
 	test.equal( dog.getReactiveValue('canMove'), true );
 	test.equal( duck.getReactiveValue('canMove'), true );
-	test.equal( amoeba.getReactiveValue('canMove'), false );
+	test.equal( amoeba.getReactiveValue('canMove'), true );
+	test.equal( amoeba.getReactiveValue('hasBrain'), false );
 
+	test.equal( dog.getReactiveValue('lifeExpectancyInYears'), 10 );
+	test.equal( duck.getReactiveValue('lifeExpectancyInYears'), 10 );
+	test.equal( amoeba.getReactiveValue('lifeExpectancyInYears'), 0.1 );
+	
 });
 
 

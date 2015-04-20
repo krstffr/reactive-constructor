@@ -189,9 +189,16 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// Method for returning the default values for the type, as defined in the
-	// constructor function.
+	// constructor function. If there are global default sets, return those as well 
+	// (however they will be overwritten by the type specific data)
 	passedClass.prototype.getDefaultValues = function () {
-		return _.findWhere( this.typeStructure, { type: this.getType() }).defaultData || {};
+		// Get the default data specific for this type
+		var typeDefaults = _.findWhere( this.typeStructure, { type: this.getType() }).defaultData || {};
+		// If there are no global defaults, just return the type specific defaults
+		if (!this.globalValues || !this.globalValues.defaultData)
+			return typeDefaults;
+		// Else combine the data and return all of it
+		return _.assign( this.globalValues.defaultData, typeDefaults );
 	};
 
 	// Method for setting up all initValues, no matter what initValues
