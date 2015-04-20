@@ -1,4 +1,4 @@
-# reactive-constructor [![Build Status](https://travis-ci.org/krstffr/reactive-constructor.svg)](https://travis-ci.org/krstffr/reactive-constructor)
+# reactive-constructor [![Build Status](https://travis-ci.org/krstffr/reactive-constructor.svg?branch=master)](https://travis-ci.org/krstffr/reactive-constructor)
 
 Meteor.js package for creating reactive-by-default objects.
 
