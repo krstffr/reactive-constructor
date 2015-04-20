@@ -186,3 +186,58 @@ InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) 
   that.initReactiveValues();
   
 });
+
+
+
+
+
+
+
+Animal = new ReactiveConstructor(function Animal ( initData ) {
+
+  this.initData = initData;
+
+  this.globalValues = {
+    fields: {
+      numberOfLegs: Number,
+      hasBrain: Boolean,
+      canMove: Boolean,
+      lifeExpectancyInYears: Number
+    },
+    defaultData: {
+      // This is kind of silly default data, but makes sense sort of?
+      hasBrain: true,
+      canMove: true,
+      lifeExpectancyInYears: 10
+    }
+  };
+
+  this.typeStructure = [{
+    type: 'dog',
+    defaultData: {
+      hasBrain: true
+    }
+  }, {
+    type: 'crippledCat',
+    defaultData: {
+      numberOfLegs: 3,
+      lifeExpectancyInYears: 7
+    }
+  }, {
+    type: 'duck',
+    defaultData: {
+      numberOfLegs: 2,
+      hasBrain: true
+    }
+  }, {
+    type: 'amoeba',
+    defaultData: {
+      hasBrain: false,
+      numberOfLegs: 0,
+      lifeExpectancyInYears: 0.1
+    }
+  }];
+
+  this.initReactiveValues();
+
+});
