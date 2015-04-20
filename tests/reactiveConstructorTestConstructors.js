@@ -200,7 +200,13 @@ Animal = new ReactiveConstructor(function Animal ( initData ) {
   this.globalValues = {
     fields: {
       numberOfLegs: Number,
-      hasBrain: Boolean
+      hasBrain: Boolean,
+      canMove: Boolean
+    },
+    defaultData: {
+      // This is kind of silly default data, but makes sense sort of?
+      hasBrain: true,
+      canMove: true
     }
   };
 

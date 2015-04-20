@@ -563,7 +563,7 @@ Tinytest.add('duplicate constructor name should throw errer', function( test ) {
 	});
 });
 
-Tinytest.add('setting global fields for constructor', function( test ) {
+Tinytest.add('Global fields - setting global fields for constructor', function( test ) {
 
 	var dog = new Animal({ rcType: 'dog' });
 	var duck = new Animal({ rcType: 'duck' });
@@ -581,6 +581,19 @@ Tinytest.add('setting global fields for constructor', function( test ) {
 	test.equal( duck.getReactiveValue('numberOfLegs'), 2 );
 
 });
+
+Tinytest.add('Global fields - setting (and overwriting) global default values for constructor', function( test ) {
+
+	var dog = new Animal({ rcType: 'dog' });
+	var duck = new Animal({ rcType: 'duck' });
+	var amoeba = new Animal({ rcType: 'amoeba' });
+
+	test.equal( dog.getReactiveValue('canMove'), true );
+	test.equal( duck.getReactiveValue('canMove'), true );
+	test.equal( amoeba.getReactiveValue('canMove'), false );
+
+});
+
 
 
 
