@@ -186,3 +186,48 @@ InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) 
   that.initReactiveValues();
   
 });
+
+
+
+
+
+
+
+Animal = new ReactiveConstructor(function Animal ( initData ) {
+
+  this.initData = initData;
+
+  this.globalValues = {
+    fields: {
+      numberOfLegs: Number,
+      hasBrain: Boolean
+    }
+  };
+
+  this.typeStructure = [{
+    type: 'dog',
+    defaultData: {
+      hasBrain: true
+    }
+  }, {
+    type: 'crippledCat',
+    defaultData: {
+      numberOfLegs: 3
+    }
+  }, {
+    type: 'duck',
+    defaultData: {
+      numberOfLegs: 2,
+      hasBrain: true
+    }
+  }, {
+    type: 'amoeba',
+    defaultData: {
+      hasBrain: false,
+      numberOfLegs: 0
+    }
+  }];
+
+  this.initReactiveValues();
+
+});

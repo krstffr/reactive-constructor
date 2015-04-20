@@ -562,3 +562,34 @@ Tinytest.add('duplicate constructor name should throw errer', function( test ) {
 		Person = new ReactiveConstructor( function Person() {});
 	});
 });
+
+Tinytest.add('setting global fields for constructor', function( test ) {
+
+	var dog = new Animal({ rcType: 'dog' });
+	var duck = new Animal({ rcType: 'duck' });
+	var crippledCat = new Animal({ rcType: 'crippledCat' });
+	var amoeba = new Animal({ rcType: 'amoeba' });
+
+	test.equal( dog.getType(), 'dog' );
+	test.equal( duck.getType(), 'duck' );
+	test.equal( crippledCat.getType(), 'crippledCat' );
+	test.equal( amoeba.getType(), 'amoeba' );
+
+	test.equal( dog.getReactiveValue('hasBrain'), true );
+	test.equal( amoeba.getReactiveValue('hasBrain'), false );
+	test.equal( crippledCat.getReactiveValue('numberOfLegs'), 3 );
+	test.equal( duck.getReactiveValue('numberOfLegs'), 2 );
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
