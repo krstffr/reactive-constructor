@@ -562,3 +562,52 @@ Tinytest.add('duplicate constructor name should throw errer', function( test ) {
 		Person = new ReactiveConstructor( function Person() {});
 	});
 });
+
+Tinytest.add('Global fields - setting global fields for constructor', function( test ) {
+
+	var dog = new Animal({ rcType: 'dog' });
+	var duck = new Animal({ rcType: 'duck' });
+	var crippledCat = new Animal({ rcType: 'crippledCat' });
+	var amoeba = new Animal({ rcType: 'amoeba' });
+
+	test.equal( dog.getType(), 'dog' );
+	test.equal( duck.getType(), 'duck' );
+	test.equal( crippledCat.getType(), 'crippledCat' );
+	test.equal( amoeba.getType(), 'amoeba' );
+
+	test.equal( dog.getReactiveValue('hasBrain'), true );
+	test.equal( amoeba.getReactiveValue('hasBrain'), false );
+	test.equal( crippledCat.getReactiveValue('numberOfLegs'), 3 );
+	test.equal( duck.getReactiveValue('numberOfLegs'), 2 );
+
+});
+
+Tinytest.add('Global fields - setting (and overwriting) global default values for constructor', function( test ) {
+
+	var dog = new Animal({ rcType: 'dog' });
+	var duck = new Animal({ rcType: 'duck' });
+	var amoeba = new Animal({ rcType: 'amoeba' });
+
+	test.equal( dog.getReactiveValue('canMove'), true );
+	test.equal( duck.getReactiveValue('canMove'), true );
+	test.equal( amoeba.getReactiveValue('canMove'), true );
+	test.equal( amoeba.getReactiveValue('hasBrain'), false );
+
+	test.equal( dog.getReactiveValue('lifeExpectancyInYears'), 10 );
+	test.equal( duck.getReactiveValue('lifeExpectancyInYears'), 10 );
+	test.equal( amoeba.getReactiveValue('lifeExpectancyInYears'), 0.1 );
+	
+});
+
+
+
+
+
+
+
+
+
+
+
+
+

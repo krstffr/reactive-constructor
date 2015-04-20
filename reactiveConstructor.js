@@ -23,7 +23,13 @@ ReactiveConstructor = function( passedClass ) {
 
 	// Method for returning the current structure for the current type
 	passedClass.prototype.getCurrentTypeStructure = function () {
-		return _.findWhere( this.typeStructure, { type: this.getType() }).fields;
+		// Get the fields specific for this type
+		var typeFields = _.findWhere( this.typeStructure, { type: this.getType() }).fields;
+		// If there are no global fields, just return the type specific fields
+		if (!this.globalValues || !this.globalValues.fields)
+			return typeFields;
+		// Else combine the fields and return all of them
+		return _.assign( this.globalValues.fields, typeFields );
 	};
 
 	// Method for removing a value of a reactive item.
@@ -183,9 +189,16 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// Method for returning the default values for the type, as defined in the
-	// constructor function.
+	// constructor function. If there are global default sets, return those as well 
+	// (however they will be overwritten by the type specific data)
 	passedClass.prototype.getDefaultValues = function () {
-		return _.findWhere( this.typeStructure, { type: this.getType() }).defaultData || {};
+		// Get the default data specific for this type
+		var typeDefaults = _.findWhere( this.typeStructure, { type: this.getType() }).defaultData || {};
+		// If there are no global defaults, just return the type specific defaults
+		if (!this.globalValues || !this.globalValues.defaultData)
+			return typeDefaults;
+		// Else combine the data and return all of it
+		return _.assign( this.globalValues.defaultData, typeDefaults );
 	};
 
 	// Method for setting up all initValues, no matter what initValues
