@@ -8,7 +8,7 @@ Tinytest.add('exported objects', function ( test ) {
 
 Tinytest.add('Person - Init constructors without params', function ( test ) {
 	
-	var defaultData = new Person().typeStructure[0].defaultData;
+	var defaultData = Person.constructorDefaults().typeStructure[0].defaultData;
 	var defaultDataKeys = _( defaultData ).keys();
 	var testPerson = new Person();
 
@@ -27,7 +27,7 @@ Tinytest.add('Person - Init constructors without params', function ( test ) {
 
 Tinytest.add('Invoice - Init constructors without params', function ( test ) {
 	
-	var defaultData = new Invoice().typeStructure[0].defaultData;
+	var defaultData = Invoice.constructorDefaults().typeStructure[0].defaultData;
 	var defaultDataKeys = _( defaultData ).keys();
 	var testInvoice = new Invoice();
 
@@ -217,7 +217,7 @@ Tinytest.add('Invoice - Test some methods', function ( test ) {
 
 Tinytest.add('getCurrentTypeMethods()', function ( test ) {
 
-	var methodsDefinedInConstructor = _( new Person().typeStructure )
+	var methodsDefinedInConstructor = _( Person.constructorDefaults().typeStructure )
 	.findWhere({ type: 'child'} ).methods;
 	
 	var child = new Person({});
@@ -229,9 +229,9 @@ Tinytest.add('getCurrentTypeMethods()', function ( test ) {
 	// defined in the constructor.
 	_.each(methods, function( method, methodName ){
 		// Method is a function?
-		test.equal( typeof method, "function" );
+		test.equal( typeof method, 'function' );
 		// Method is also in the constructor?
-		test.equal( typeof methodsDefinedInConstructor[methodName], "function" );
+		test.equal( typeof methodsDefinedInConstructor[methodName], 'function' );
 	});
 
 });
@@ -245,7 +245,7 @@ Tinytest.add('getCurrentTypeStructure()', function ( test ) {
 		// Create new instance
 		var item = new constructor();
 		// Get the default structure
-		var structureDefinedInClass = new constructor().typeStructure[0].fields;
+		var structureDefinedInClass = constructor.constructorDefaults().typeStructure[0].fields;
 		// Get the structure from the getCurrentTypeStructure method
 		var structure = item.getCurrentTypeStructure();
 		_.each(structure, function( structureType, key ){
@@ -494,7 +494,7 @@ Tinytest.add('getDefaultValues()', function ( test ) {
 	
 	var testPerson = new Person();
 
-	test.equal( testPerson.getDefaultValues().toString(), new Person().typeStructure[0].defaultData.toString() );
+	test.equal( testPerson.getDefaultValues().toString(), Person.constructorDefaults().typeStructure[0].defaultData.toString() );
 
 });
 
@@ -502,7 +502,7 @@ Tinytest.add('setupInitValues()', function ( test ) {
 	
 	var testClient = new Client();
 
-	var theDefaultItems = new Client().typeStructure[0];
+	var theDefaultItems = Client.constructorDefaults().typeStructure[0];
 
 	var defaultItemsLength = _( theDefaultItems.defaultData ).keys().length;
 
@@ -540,15 +540,15 @@ Tinytest.add('setType() - throw error when trying to set a type which is not de
 Tinytest.add('getType()', function ( test ) {
 	
 	var testClient = new Client();
-	var defaultType = new Client().typeStructure[0].type;
+	var defaultType = Client.constructorDefaults().typeStructure[0].type;
 	test.equal( testClient.getType(), defaultType );
 
 	var testPerson = new Person();
-	defaultType = new Person().typeStructure[0].type;
+	defaultType = Person.constructorDefaults().typeStructure[0].type;
 	test.equal( testPerson.getType(), defaultType );
 
 	var testInvoice = new Invoice();
-	defaultType = new Invoice().typeStructure[0].type;
+	defaultType = Invoice.constructorDefaults().typeStructure[0].type;
 	test.equal( testInvoice.getType(), defaultType );
 
 	testPerson.setType({ rcType: 'child' });

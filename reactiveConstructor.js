@@ -3,9 +3,15 @@ var typeKey = 'rcType';
 // Holder for all current constructors
 ReactiveConstructors = {};
 
-ReactiveConstructor = function( passedConstructor ) {
+ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 	var that = this;
+
+	if(!constructorDefaults)
+		throw new Meteor.Error('no-constructor-defaults-passed', 'No constructor defaults passed for: ' + passedConstructor.name );
+
+	// Add the default to the constructor
+	passedConstructor.constructorDefaults = constructorDefaults;
 
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
@@ -18,18 +24,19 @@ ReactiveConstructor = function( passedConstructor ) {
 
 	// Method for getting all custom methods of this 
 	passedConstructor.prototype.getCurrentTypeMethods = function () {
-		return _.findWhere( this.typeStructure, { type: this.getType() }).methods;
+		return _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).methods;
 	};
 
 	// Method for returning the current structure for the current type
 	passedConstructor.prototype.getCurrentTypeStructure = function () {
 		// Get the fields specific for this type
-		var typeFields = _.findWhere( this.typeStructure, { type: this.getType() }).fields;
+		// var typeFields = _.findWhere( this.typeStructure, { type: this.getType() }).fields;
+		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).fields;
 		// If there are no global fields, just return the type specific fields
-		if (!this.globalValues || !this.globalValues.fields)
+		if (!passedConstructor.constructorDefaults().globalValues || !passedConstructor.constructorDefaults().globalValues.fields)
 			return typeFields;
 		// Else combine the fields and return all of them
-		return _.assign( this.globalValues.fields, typeFields );
+		return _.assign( passedConstructor.constructorDefaults().globalValues.fields, typeFields );
 	};
 
 	// Method for removing a value of a reactive item.
@@ -86,6 +93,8 @@ ReactiveConstructor = function( passedConstructor ) {
 	// Check the type of a passed value compared to what has been defined
 	// by the user.
 	passedConstructor.prototype.checkReactiveValueType = function ( key, value ) {
+		// if ( !Match.test( value, this.getCurrentTypeStructure()[key] ) )
+			// console.log( value, this.getCurrentTypeStructure(), key );
 		check(value, this.getCurrentTypeStructure()[key]);
 		return true;
 	};
@@ -193,12 +202,12 @@ ReactiveConstructor = function( passedConstructor ) {
 	// (however they will be overwritten by the type specific data)
 	passedConstructor.prototype.getDefaultValues = function () {
 		// Get the default data specific for this type
-		var typeDefaults = _.findWhere( this.typeStructure, { type: this.getType() }).defaultData || {};
+		var typeDefaults = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).defaultData || {};
 		// If there are no global defaults, just return the type specific defaults
-		if (!this.globalValues || !this.globalValues.defaultData)
+		if (!passedConstructor.constructorDefaults().globalValues || !passedConstructor.constructorDefaults().globalValues.defaultData)
 			return typeDefaults;
 		// Else combine the data and return all of it
-		return _.assign( this.globalValues.defaultData, typeDefaults );
+		return _.assign( passedConstructor.constructorDefaults().globalValues.defaultData, typeDefaults );
 	};
 
 	// Method for setting up all initValues, no matter what initValues
@@ -246,13 +255,13 @@ ReactiveConstructor = function( passedConstructor ) {
 	// TODO: This needs to be handled in a cleaner way probably!
 	passedConstructor.prototype.setType = function ( initData ) {
 		
-		typeValue = (initData && initData[ typeKey ]) ? initData[ typeKey ] : this.typeStructure[0].type;
+		var typeValue = (initData && initData[ typeKey ]) ? initData[ typeKey ] : passedConstructor.constructorDefaults().typeStructure[0].type;
 		
 		// Make sure it's a string!
 		check(typeValue, String );
 
 		// Make sure the type is actually defined!
-		if (!_.findWhere( this.typeStructure, { type: typeValue }))
+		if (!_.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: typeValue }))
 			throw new Meteor.Error('reactiveData-wrong-type', 'There is no type: '+typeValue+'!');
 
 		this[ typeKey ] = typeValue;
