@@ -332,6 +332,17 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 	};
 
+	// Method for adding the auto init stuff!
+	// CAN THIS WORK??
+	// TODO: Remove this if I can't figure out a way to make it work!
+	function injectToConstructor(C) {
+		return function(){
+			var self = new (C.bind.apply(C,[C].concat([].slice.call(arguments))))();			
+			console.log('test');
+			return self;
+		};
+	}
+
 	// Store the class in the ReactiveConstructors object.
 	// This is so that we can create new instances of these constructors
 	// later when needed!
