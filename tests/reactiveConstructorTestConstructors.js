@@ -1,11 +1,7 @@
 // Create a reactive constructor which can be used in tests.
-Person = new ReactiveConstructor(function Person( initData ) {
+Person = new ReactiveConstructor(function Person() {
 
-  var that = this;
-
-  that.initData = initData || {};
-
-  that.initReactiveValues();
+  this.initReactiveValues( arguments[0] );
 
 }, function () {
   return {
@@ -63,13 +59,9 @@ Person = new ReactiveConstructor(function Person( initData ) {
 
 
 // A generic "Client"
-Client = new ReactiveConstructor( function Client( initData ) {
+Client = new ReactiveConstructor( function Client() {
 
-  var that = this;
-  
-  that.initData = initData || {};
-
-  that.initReactiveValues();
+  this.initReactiveValues( arguments[0] );
 
 }, function () {
   return {
@@ -88,11 +80,9 @@ Client = new ReactiveConstructor( function Client( initData ) {
 
 
 // A generic "Invoice"
-Invoice = new ReactiveConstructor(function Invoice ( initData ) {
+Invoice = new ReactiveConstructor(function Invoice () {
 
   var that = this;
-
-  that.initData = initData;
 
   that.items = {};
 
@@ -118,7 +108,7 @@ Invoice = new ReactiveConstructor(function Invoice ( initData ) {
     return Invoices.upsert( { _id: dataToSave._id }, dataToSave );
   };
 
-  that.initReactiveValues();
+  that.initReactiveValues( arguments[0] );
 
 }, function () {
   return {
@@ -149,11 +139,9 @@ Invoice = new ReactiveConstructor(function Invoice ( initData ) {
 
 
 // A generic "InvoiceListItem"
-InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) {
+InvoiceListItem = new ReactiveConstructor(function InvoiceListItem () {
 
   var that = this;
-
-  that.initData = initData;
 
   that.endPrice = function () {
     return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
@@ -167,7 +155,7 @@ InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) 
     return that.priceAfterTax() - that.endPrice();
   };
 
-  that.initReactiveValues();
+  that.initReactiveValues( arguments[0] );
   
 }, function () {
   return {
@@ -199,11 +187,9 @@ InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) 
 
 
 
-Animal = new ReactiveConstructor(function Animal ( initData ) {
+Animal = new ReactiveConstructor(function Animal () {
 
-  this.initData = initData;
-
-  this.initReactiveValues();
+  this.initReactiveValues( arguments[0] );
 
 }, function () {
   return {

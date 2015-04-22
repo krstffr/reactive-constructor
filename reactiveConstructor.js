@@ -7,6 +7,7 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 	var that = this;
 
+	// Make sure there are passed constructorDefaults
 	if(!constructorDefaults)
 		throw new Meteor.Error('no-constructor-defaults-passed', 'No constructor defaults passed for: ' + passedConstructor.name );
 
@@ -95,9 +96,9 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	passedConstructor.prototype.checkReactiveValueType = function ( key, value ) {
 		// if ( !Match.test( value, this.getCurrentTypeStructure()[key] ) )
 			// console.log( value, this.getCurrentTypeStructure(), key );
-		check(value, this.getCurrentTypeStructure()[key]);
-		return true;
-	};
+			check(value, this.getCurrentTypeStructure()[key]);
+			return true;
+		};
 
 	// Check the entire structure of the reactive data.
 	passedConstructor.prototype.checkReactiveValues = function () {
@@ -293,26 +294,26 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 			// Run initInstance method on this instance
 			if ( Match.test( RCPlugin.options.initInstance, Function ) )
 				instance = RCPlugin.options.initInstance( instance );
-		
+
 		});
 		
 	};
 
 
 	// Method for initiating the ReactiveConstructor.
-	passedConstructor.prototype.initReactiveValues = function () {
+	passedConstructor.prototype.initReactiveValues = function ( initData ) {
 
 		// Setup the type of this constructor
-		this.setType( this.initData );
+		this.setType( initData );
 		
 		// Remove the type key!
 		// TODO: This needs to be handled in a cleaner way probably!
-		if (this.initData && this.initData[ typeKey ])
-			delete this.initData[ typeKey ];
+		if (initData && initData[ typeKey ])
+			delete initData[ typeKey ];
 
 		// Setup the init data, setting default data and bare data
 		// (Strings should be set to "" and numbers to 0 if no default or init value is set)
-		var initData = this.setupInitValues( this.initData );
+		initData = this.setupInitValues( initData );
 		initData = this.prepareDataToCorrectTypes( initData );
 
 		// Init all plugins
@@ -323,11 +324,6 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 		// Setup all type specific methods
 		this.setupTypeMethods( this );
-
-		// TODO: Make a decision about this:
-		// Maybe delete the initData??
-		// Will we ever need it later? Probably not?
-		delete this.initData;
 
 		if (!this.checkReactiveValues())
 			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
