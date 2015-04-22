@@ -335,6 +335,7 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	// Method for adding the auto init stuff!
 	// CAN THIS WORK??
 	// TODO: Remove this if I can't figure out a way to make it work!
+	// The problem is with the name property!
 	function injectToConstructor(C) {
 		return function(){
 			var self = new (C.bind.apply(C,[C].concat([].slice.call(arguments))))();			
