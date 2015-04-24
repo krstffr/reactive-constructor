@@ -99,11 +99,9 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	// Check the type of a passed value compared to what has been defined
 	// by the user.
 	passedConstructor.prototype.checkReactiveValueType = function ( key, value ) {
-		// if ( !Match.test( value, this.getCurrentTypeStructure()[key] ) )
-			// console.log( value, this.getCurrentTypeStructure(), key );
-			check(value, this.getCurrentTypeStructure()[key]);
-			return true;
-		};
+		check(value, this.getCurrentTypeStructure()[key]);
+		return true;
+	};
 
 	// Check the entire structure of the reactive data.
 	passedConstructor.prototype.checkReactiveValues = function () {
@@ -292,10 +290,6 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
 			
-			// Run all plugin initClass on class
-			if ( Match.test( RCPlugin.options.initClass, Function ) )
-				passedConstructor = RCPlugin.options.initClass( passedConstructor );
-
 			// Run initInstance method on this instance
 			if ( Match.test( RCPlugin.options.initInstance, Function ) )
 				instance = RCPlugin.options.initInstance( instance );
@@ -315,7 +309,7 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 			// Run all plugin initConstructor on class
 			if ( Match.test( RCPlugin.options.initConstructor, Function ) )
 				passedConstructor = RCPlugin.options.initConstructor( passedConstructor );
-		
+			
 		});
 
 		return passedConstructor;
@@ -356,7 +350,7 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	};
 
 	// Init all plugins on this constructor
-	passedClass = initPluginsOnConstructor( passedClass );
+	passedConstructor = initPluginsOnConstructor( passedConstructor );
 
 	// Method for adding the auto init stuff!
 	// CAN THIS WORK??
@@ -364,8 +358,7 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	// The problem is with the name property!
 	function injectToConstructor(C) {
 		return function(){
-			var self = new (C.bind.apply(C,[C].concat([].slice.call(arguments))))();			
-			console.log('test');
+			var self = new (C.bind.apply(C,[C].concat([].slice.call(arguments))))();
 			return self;
 		};
 	}
