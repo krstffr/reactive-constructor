@@ -137,7 +137,7 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 		return _.mapValues(this.reactiveData.get(), function ( value ) {
 
 			// Does the value have this method? Then it's "one of us", recurse!
-			if ( Match.test( value.getDataAsObject, Function ) )
+			if ( value && Match.test( value.getDataAsObject, Function ) )
 				value = value.getDataAsObject();
 
 			// Is it an array of items?
