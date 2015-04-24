@@ -14,6 +14,11 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	// Add the default to the constructor
 	passedConstructor.constructorDefaults = constructorDefaults;
 
+	// Method for retrieving all the defined types of a constructor
+	passedConstructor.getTypeNames = function() {
+		return _.pluck( passedConstructor.constructorDefaults().typeStructure, 'type' );
+	};
+
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
 	// TODO: How to make this more testable?

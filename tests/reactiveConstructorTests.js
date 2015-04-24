@@ -599,6 +599,15 @@ Tinytest.add('Global fields - setting (and overwriting) global default values fo
 	
 });
 
+Tinytest.add('getTypeNames()', function( test ) {
+
+	test.equal( Person.getTypeNames(), ['worker', 'husband', 'wife', 'child']);
+	test.equal( Client.getTypeNames(), ['client']);
+	test.equal( Invoice.getTypeNames(), ['invoice']);
+	test.equal( InvoiceListItem.getTypeNames(), ['invoiceListItem']);
+	test.equal( Animal.getTypeNames(), ['dog', 'crippledCat', 'duck', 'amoeba']);
+
+});
 
 
 
