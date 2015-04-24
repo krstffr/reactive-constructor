@@ -3,37 +3,50 @@ var typeKey = 'rcType';
 // Holder for all current constructors
 ReactiveConstructors = {};
 
-ReactiveConstructor = function( passedClass ) {
+ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 	var that = this;
+
+	// Make sure there are passed constructorDefaults
+	if(!constructorDefaults)
+		throw new Meteor.Error('no-constructor-defaults-passed', 'No constructor defaults passed for: ' + passedConstructor.name );
+
+	// Add the default to the constructor
+	passedConstructor.constructorDefaults = constructorDefaults;
+
+	// Method for retrieving all the defined types of a constructor
+	passedConstructor.getTypeNames = function() {
+		return _.pluck( passedConstructor.constructorDefaults().typeStructure, 'type' );
+	};
 
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
 	// TODO: How to make this more testable?
-	passedClass.prototype.setupTypeMethods = function ( reactiveObject ) {
+	passedConstructor.prototype.setupTypeMethods = function ( reactiveObject ) {
 		_.each(reactiveObject.getCurrentTypeMethods(), function( method, methodName ){
 			reactiveObject[ methodName ] = method;
 		});
 	};
 
 	// Method for getting all custom methods of this 
-	passedClass.prototype.getCurrentTypeMethods = function () {
-		return _.findWhere( this.typeStructure, { type: this.getType() }).methods;
+	passedConstructor.prototype.getCurrentTypeMethods = function () {
+		return _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).methods;
 	};
 
 	// Method for returning the current structure for the current type
-	passedClass.prototype.getCurrentTypeStructure = function () {
+	passedConstructor.prototype.getCurrentTypeStructure = function () {
 		// Get the fields specific for this type
-		var typeFields = _.findWhere( this.typeStructure, { type: this.getType() }).fields;
+		// var typeFields = _.findWhere( this.typeStructure, { type: this.getType() }).fields;
+		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).fields;
 		// If there are no global fields, just return the type specific fields
-		if (!this.globalValues || !this.globalValues.fields)
+		if (!passedConstructor.constructorDefaults().globalValues || !passedConstructor.constructorDefaults().globalValues.fields)
 			return typeFields;
 		// Else combine the fields and return all of them
-		return _.assign( this.globalValues.fields, typeFields );
+		return _.assign( passedConstructor.constructorDefaults().globalValues.fields, typeFields );
 	};
 
 	// Method for removing a value of a reactive item.
-	passedClass.prototype.unsetReactiveValue = function ( key ) {
+	passedConstructor.prototype.unsetReactiveValue = function ( key ) {
 
 		// Get all the data
 		var reactiveData = this.reactiveData.get();
@@ -52,7 +65,7 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// Method for setting the value of a reactive item.
-	passedClass.prototype.setReactiveValue = function ( key, value ) {
+	passedConstructor.prototype.setReactiveValue = function ( key, value ) {
 
 		// Make sure the passed value has the correct type
 		if (!this.checkReactiveValueType( key, value ))
@@ -77,7 +90,7 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// Get the value of the reactive data from key
-	passedClass.prototype.getReactiveValue = function ( key ) {
+	passedConstructor.prototype.getReactiveValue = function ( key ) {
 		if (!this.reactiveData)
 			return false;
 		return this.reactiveData.get()[key];
@@ -85,13 +98,15 @@ ReactiveConstructor = function( passedClass ) {
 
 	// Check the type of a passed value compared to what has been defined
 	// by the user.
-	passedClass.prototype.checkReactiveValueType = function ( key, value ) {
-		check(value, this.getCurrentTypeStructure()[key]);
-		return true;
-	};
+	passedConstructor.prototype.checkReactiveValueType = function ( key, value ) {
+		// if ( !Match.test( value, this.getCurrentTypeStructure()[key] ) )
+			// console.log( value, this.getCurrentTypeStructure(), key );
+			check(value, this.getCurrentTypeStructure()[key]);
+			return true;
+		};
 
 	// Check the entire structure of the reactive data.
-	passedClass.prototype.checkReactiveValues = function () {
+	passedConstructor.prototype.checkReactiveValues = function () {
 
 		// We need to allow the existence of unset values,
 		// for examples if a Person has a father field of type
@@ -118,7 +133,7 @@ ReactiveConstructor = function( passedClass ) {
 
 	// Method for returning the entire object as only the reactive
 	// data, with no nested types with methods and stuff.
-	passedClass.prototype.getDataAsObject = function () {
+	passedConstructor.prototype.getDataAsObject = function () {
 
 		// Map over the reactive data object
 		return _.mapValues(this.reactiveData.get(), function ( value ) {
@@ -145,7 +160,7 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// Method for converting initData to correct data types
-	passedClass.prototype.prepareDataToCorrectTypes = function ( data ) {
+	passedConstructor.prototype.prepareDataToCorrectTypes = function ( data ) {
 
 		var that = this;
 
@@ -191,20 +206,20 @@ ReactiveConstructor = function( passedClass ) {
 	// Method for returning the default values for the type, as defined in the
 	// constructor function. If there are global default sets, return those as well 
 	// (however they will be overwritten by the type specific data)
-	passedClass.prototype.getDefaultValues = function () {
+	passedConstructor.prototype.getDefaultValues = function () {
 		// Get the default data specific for this type
-		var typeDefaults = _.findWhere( this.typeStructure, { type: this.getType() }).defaultData || {};
+		var typeDefaults = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).defaultData || {};
 		// If there are no global defaults, just return the type specific defaults
-		if (!this.globalValues || !this.globalValues.defaultData)
+		if (!passedConstructor.constructorDefaults().globalValues || !passedConstructor.constructorDefaults().globalValues.defaultData)
 			return typeDefaults;
 		// Else combine the data and return all of it
-		return _.assign( this.globalValues.defaultData, typeDefaults );
+		return _.assign( passedConstructor.constructorDefaults().globalValues.defaultData, typeDefaults );
 	};
 
 	// Method for setting up all initValues, no matter what initValues
 	// the user has passed. The initValues will be constructed from
 	// the typeStructure the user has set for this type.
-	passedClass.prototype.setupInitValues = function ( initValues ) {
+	passedConstructor.prototype.setupInitValues = function ( initValues ) {
 		
 		// Create a "bare" value from the type structure.
 		// For example: a String will return "", a Number will return 0
@@ -244,15 +259,15 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// TODO: This needs to be handled in a cleaner way probably!
-	passedClass.prototype.setType = function ( initData ) {
+	passedConstructor.prototype.setType = function ( initData ) {
 		
-		typeValue = (initData && initData[ typeKey ]) ? initData[ typeKey ] : this.typeStructure[0].type;
+		var typeValue = (initData && initData[ typeKey ]) ? initData[ typeKey ] : passedConstructor.constructorDefaults().typeStructure[0].type;
 		
 		// Make sure it's a string!
 		check(typeValue, String );
 
 		// Make sure the type is actually defined!
-		if (!_.findWhere( this.typeStructure, { type: typeValue }))
+		if (!_.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: typeValue }))
 			throw new Meteor.Error('reactiveData-wrong-type', 'There is no type: '+typeValue+'!');
 
 		this[ typeKey ] = typeValue;
@@ -264,7 +279,7 @@ ReactiveConstructor = function( passedClass ) {
 	// Method for returning the current type of the object.
 	// Either return this.type or the first type declared in
 	// the typeStructure.
-	passedClass.prototype.getType = function () {
+	passedConstructor.prototype.getType = function () {
 		return this[ typeKey ];
 	};
 
@@ -277,10 +292,14 @@ ReactiveConstructor = function( passedClass ) {
 
 		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
 			
+			// Run all plugin initClass on class
+			if ( Match.test( RCPlugin.options.initClass, Function ) )
+				passedConstructor = RCPlugin.options.initClass( passedConstructor );
+
 			// Run initInstance method on this instance
 			if ( Match.test( RCPlugin.options.initInstance, Function ) )
 				instance = RCPlugin.options.initInstance( instance );
-		
+
 		});
 		
 	};
@@ -305,19 +324,19 @@ ReactiveConstructor = function( passedClass ) {
 
 
 	// Method for initiating the ReactiveConstructor.
-	passedClass.prototype.initReactiveValues = function () {
+	passedConstructor.prototype.initReactiveValues = function ( initData ) {
 
 		// Setup the type of this constructor
-		this.setType( this.initData );
+		this.setType( initData );
 		
 		// Remove the type key!
 		// TODO: This needs to be handled in a cleaner way probably!
-		if (this.initData && this.initData[ typeKey ])
-			delete this.initData[ typeKey ];
+		if (initData && initData[ typeKey ])
+			delete initData[ typeKey ];
 
 		// Setup the init data, setting default data and bare data
 		// (Strings should be set to "" and numbers to 0 if no default or init value is set)
-		var initData = this.setupInitValues( this.initData );
+		initData = this.setupInitValues( initData );
 		initData = this.prepareDataToCorrectTypes( initData );
 
 		// Init all plugins on this instance
@@ -329,11 +348,6 @@ ReactiveConstructor = function( passedClass ) {
 		// Setup all type specific methods
 		this.setupTypeMethods( this );
 
-		// TODO: Make a decision about this:
-		// Maybe delete the initData??
-		// Will we ever need it later? Probably not?
-		delete this.initData;
-
 		if (!this.checkReactiveValues())
 			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
 
@@ -344,16 +358,28 @@ ReactiveConstructor = function( passedClass ) {
 	// Init all plugins on this constructor
 	passedClass = initPluginsOnConstructor( passedClass );
 
+	// Method for adding the auto init stuff!
+	// CAN THIS WORK??
+	// TODO: Remove this if I can't figure out a way to make it work!
+	// The problem is with the name property!
+	function injectToConstructor(C) {
+		return function(){
+			var self = new (C.bind.apply(C,[C].concat([].slice.call(arguments))))();			
+			console.log('test');
+			return self;
+		};
+	}
+
 	// Store the class in the ReactiveConstructors object.
 	// This is so that we can create new instances of these constructors
 	// later when needed!
 
 	// First: Make sure we're not overwriting an existing class
-	if (ReactiveConstructors[ passedClass.name ])
-		throw new Meteor.Error('reactive-class-already-defined', 'The reactive class' + passedClass.name + ' is already defined!');
+	if (ReactiveConstructors[ passedConstructor.name ])
+		throw new Meteor.Error('reactive-class-already-defined', 'The reactive class' + passedConstructor.name + ' is already defined!');
 
-	ReactiveConstructors[ passedClass.name ] = passedClass;
+	ReactiveConstructors[ passedConstructor.name ] = passedConstructor;
 	
-	return passedClass;
+	return passedConstructor;
 
 };
