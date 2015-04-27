@@ -136,9 +136,11 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	passedConstructor.prototype.getDataAsObject = function () {
 
 		// Map over the reactive data object
-		return _.mapValues(this.reactiveData.get(), function ( value ) {
+		var dataToReturn = _.assign({ rcType: this.getType() }, this.reactiveData.get() );
 
-			// Does the value have this method? Then it's "one of us", recurse!
+		return _.mapValues(dataToReturn, function ( value ) {
+
+			// Does the value have this method? Then it's a reactiveConstructor instance, recurse!
 			if ( value && Match.test( value.getDataAsObject, Function ) )
 				value = value.getDataAsObject();
 
@@ -231,7 +233,7 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 			if ( Match.test( val, Array ) )
 				return [];
 
-			// If it's niot an array, and not a String/Number or Boolean,
+			// If it's not an array, and not a String/Number or Boolean,
 			// don't return anything.
 			// BUG IN <IE9, .name does not work!
 			if (val.name.search(/String|Number|Boolean/g) < 0)

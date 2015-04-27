@@ -455,6 +455,16 @@ Tinytest.add('checkReactiveValueType() - wrong type should throw errors', functi
 
 Tinytest.add('getDataAsObject()', function ( test ) {
 
+	// Test a crippled cat.
+	var testAnimal = new Animal({ rcType: 'crippledCat' });
+	var constructorDefaults = Animal.constructorDefaults();
+	// Get the types default values
+	var crippledDefaults = _.findWhere(constructorDefaults.typeStructure, { type: 'crippledCat' }).defaultData;
+	// Add the global defaults, as well as the rcType
+	var defaultCrippledCat = _.extend( { rcType: 'crippledCat' }, constructorDefaults.globalValues.defaultData, crippledDefaults );
+
+	test.equal(testAnimal.getDataAsObject(), defaultCrippledCat );
+
 	var childAge = 50;
 	
 	var testPerson = new Person({
