@@ -63,13 +63,13 @@ ReactiveConstructor = function( passedClass ) {
 
 		// Set the key field of the data to the new value
 		reactiveData[ key ] = value;
+
+		// Check the entire stucture of the data about to be set
+		if ( !this.checkReactiveValues( reactiveData ) )
+			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
 		
 		// Set the reactive var to the new data
 		this.reactiveData.set( reactiveData );
-
-		// Check the entire stucture of the data
-		if (!this.checkReactiveValues())
-			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
 
 		// return the newly set value!
 		return value;
@@ -91,14 +91,17 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// Check the entire structure of the reactive data.
-	passedClass.prototype.checkReactiveValues = function () {
+	// Either check the data of the the instance, or the passed data.
+	passedClass.prototype.checkReactiveValues = function ( values ) {
+
+		var dataToCheck = values || this.reactiveData.get();
 
 		// We need to allow the existence of unset values,
 		// for examples if a Person has a father field of type
 		// Person, this field must be able to be empty.
 		// So here we get all the keys which have a value, which
 		// we later use to typecheck.
-		var keysToCheck  = _.chain(this.reactiveData.get())
+		var keysToCheck  = _.chain( dataToCheck )
 		.map( function( value, key ){
 			if (value === undefined)
 				return false;
@@ -108,7 +111,7 @@ ReactiveConstructor = function( passedClass ) {
 		.value();
 
 		check(
-			_.pick( this.reactiveData.get(), keysToCheck ),
+			_.pick( dataToCheck, keysToCheck ),
 			_.pick( this.getCurrentTypeStructure(), keysToCheck )
 			);
 
