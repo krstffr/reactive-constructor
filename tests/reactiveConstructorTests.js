@@ -362,6 +362,29 @@ Tinytest.add('unsetReactiveValue()', function( test ) {
 });
 
 
+Tinytest.add('checkReactiveValues()', function( test ) {
+	
+	var testPerson = new Person();
+	var testAnimal = new Animal();
+	var testInvoice = new Invoice();
+
+	test.isTrue( testPerson.checkReactiveValues() );
+	test.isTrue( testAnimal.checkReactiveValues() );
+	test.isTrue( testInvoice.checkReactiveValues() );
+
+	test.throws(function() {
+		testPerson.checkReactiveValues({ wrong: 'structure', not: 'correct' });
+	});
+	test.throws(function() {
+		testAnimal.checkReactiveValues({ wrong: true, correct: 0 });
+	});
+	test.throws(function() {
+		testInvoice.checkReactiveValues({ wrong: ['yes'] });
+	});
+
+});
+
+
 Tinytest.add('checkReactiveValueType()', function ( test ) {
 	
 	var testPerson = new Person();
