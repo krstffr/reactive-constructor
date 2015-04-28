@@ -14,6 +14,16 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	// Add the default to the constructor
 	passedConstructor.constructorDefaults = constructorDefaults;
 
+	if (Meteor.isServer){
+		// Add this method since it's still being called (on server as well)
+		passedConstructor.prototype.initReactiveValues = function() { return true; };
+		// Make sure we're not overwriting an existing constructor, then add it
+		if (ReactiveConstructors[ passedConstructor.name ])
+			throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + passedConstructor.name + ' is already defined!');
+		ReactiveConstructors[ passedConstructor.name ] = passedConstructor;
+		return passedConstructor;
+	}
+
 	// Method for retrieving all the defined types of a constructor
 	passedConstructor.getTypeNames = function() {
 		return _.pluck( passedConstructor.constructorDefaults().typeStructure, 'type' );
@@ -35,14 +45,26 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 	// Method for returning the current structure for the current type
 	passedConstructor.prototype.getCurrentTypeStructure = function () {
+
+		var globalFields = {};
+		
 		// Get the fields specific for this type
 		// var typeFields = _.findWhere( this.typeStructure, { type: this.getType() }).fields;
-		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).fields;
+		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).fields || {};
+
 		// If there are no global fields, just return the type specific fields
-		if (!passedConstructor.constructorDefaults().globalValues || !passedConstructor.constructorDefaults().globalValues.fields)
-			return typeFields;
+		if (passedConstructor.constructorDefaults().globalValues && passedConstructor.constructorDefaults().globalValues.fields)
+			globalFields = passedConstructor.constructorDefaults().globalValues.fields;
+
+		// A plugin might have added some fields, add those as well to the mix
+		var pluginTypeFields = _.reduce(ReactiveConstructorPlugins, function( memo, plugin ){
+			if (plugin.options.pluginTypeStructure)
+				return _.assign( memo, plugin.options.pluginTypeStructure );
+		}, {});
+
 		// Else combine the fields and return all of them
-		return _.assign( passedConstructor.constructorDefaults().globalValues.fields, typeFields );
+		return _.assign( globalFields, typeFields, pluginTypeFields );
+
 	};
 
 	// Method for removing a value of a reactive item.
@@ -310,7 +332,7 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
 			
-			// Run all plugin initConstructor on class
+			// Run all plugin initConstructor on constructor
 			if ( Match.test( RCPlugin.options.initConstructor, Function ) )
 				passedConstructor = RCPlugin.options.initConstructor( passedConstructor );
 			
@@ -337,14 +359,14 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 		initData = this.setupInitValues( initData );
 		initData = this.prepareDataToCorrectTypes( initData );
 
-		// Init all plugins on this instance
-		that.initPluginsOnInstance( this );
-
 		// Set the reactiveData source for this object.
 		this.reactiveData = new ReactiveVar( initData );
 
 		// Setup all type specific methods
 		this.setupTypeMethods( this );
+
+		// Init all plugins on this instance
+		that.initPluginsOnInstance( this );
 
 		if (!this.checkReactiveValues())
 			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
@@ -356,24 +378,13 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	// Init all plugins on this constructor
 	passedConstructor = initPluginsOnConstructor( passedConstructor );
 
-	// Method for adding the auto init stuff!
-	// CAN THIS WORK??
-	// TODO: Remove this if I can't figure out a way to make it work!
-	// The problem is with the name property!
-	function injectToConstructor(C) {
-		return function(){
-			var self = new (C.bind.apply(C,[C].concat([].slice.call(arguments))))();
-			return self;
-		};
-	}
-
-	// Store the class in the ReactiveConstructors object.
+	// Store the constructor in the ReactiveConstructors object.
 	// This is so that we can create new instances of these constructors
 	// later when needed!
 
-	// First: Make sure we're not overwriting an existing class
+	// First: Make sure we're not overwriting an existing constructor
 	if (ReactiveConstructors[ passedConstructor.name ])
-		throw new Meteor.Error('reactive-class-already-defined', 'The reactive class' + passedConstructor.name + ' is already defined!');
+		throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + passedConstructor.name + ' is already defined!');
 
 	ReactiveConstructors[ passedConstructor.name ] = passedConstructor;
 	
