@@ -120,36 +120,90 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 	// Check the type of a passed value compared to what has been defined
 	// by the user.
-	passedConstructor.prototype.checkReactiveValueType = function ( key, value ) {
-		check(value, this.getCurrentTypeStructure()[key]);
-		return true;
+	passedConstructor.prototype.checkReactiveValueType = function ( key, passedValue ) {
+		
+		var currentTypeToCheck = this.getCurrentTypeStructure()[ key ];
+
+		var ordinaryMethod = function( passedValue, currentTypeToCheck ) {
+			check( passedValue, currentTypeToCheck );
+			return true;
+		};
+
+		var args = [ passedValue, currentTypeToCheck, ordinaryMethod ];
+
+		return this.getPluginOverrides('checkReactiveValueType', args );
+		
 	};
+
+	// This method allows plugins to override a "native" (ordinary) method.
+	// The "native" method MUST be provided as the last item in the args array!
+	passedConstructor.prototype.getPluginOverrides = function( methodName, args ) {
+
+		// The ordinary method MUST be provided as the last item
+		var ordinaryMethod = _.last(args);
+
+		check( methodName, String );
+		check( ordinaryMethod, Function );
+
+		// Allow plugins to override this check
+		if (ReactiveConstructorPlugins.length > 0){
+
+			// Get all plugins which have this method.
+			var pluginsWithChecks = _.filter( ReactiveConstructorPlugins, function(plugin){
+				return Match.test( plugin[ methodName ], Function );
+			});
+
+			// If there are none, just return the ordinary method
+			if (pluginsWithChecks.length < 1)
+				return ordinaryMethod.apply( this, _.initial( args ) );
+
+			// If one of the plugins allows this method, accept it
+			// TODO: Does this make sense? Probably?
+			return _.some(pluginsWithChecks, function( plugin ){
+				return plugin[ methodName ].apply( this, args );
+			});
+
+		}
+
+		return ordinaryMethod.apply( this, _.initial( args ) );
+
+	};
+
 
 	// Either check the data of the the instance, or the passed data.
 	passedConstructor.prototype.checkReactiveValues = function ( values ) {
 
 		var dataToCheck = values || this.reactiveData.get();
+		var currentTypeStructure = this.getCurrentTypeStructure();
 
-		// We need to allow the existence of unset values,
-		// for examples if a Person has a father field of type
-		// Person, this field must be able to be empty.
-		// So here we get all the keys which have a value, which
-		// we later use to typecheck.
-		var keysToCheck  = _.chain( dataToCheck )
-		.map( function( value, key ){
-			if (value === undefined)
-				return false;
-			return key;
-		})
-		.compact()
-		.value();
+		var ordinaryMethod = function( dataToCheck, currentTypeStructure ) {
 
-		check(
-			_.pick( dataToCheck, keysToCheck ),
-			_.pick( this.getCurrentTypeStructure(), keysToCheck )
-			);
+			// We need to allow the existence of unset values,
+			// for examples if a Person has a father field of type
+			// Person, this field must be able to be empty.
+			// So here we get all the keys which have a value, which
+			// we later use to typecheck.
+			var keysToCheck  = _.chain( dataToCheck )
+			.map( function( value, key ){
+				if (value === undefined)
+					return false;
+				return key;
+			})
+			.compact()
+			.value();
 
-		return true;
+			check(
+				_.pick( dataToCheck, keysToCheck ),
+				_.pick( currentTypeStructure, keysToCheck )
+				);
+
+			return true;
+
+		};
+
+		var args = [ dataToCheck, currentTypeStructure, ordinaryMethod ];
+
+		return this.getPluginOverrides('checkReactiveValues', args );
 
 	};
 
