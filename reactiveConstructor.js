@@ -159,9 +159,20 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 			// If one of the plugins allows this method, accept it
 			// TODO: Does this make sense? Probably?
-			return _.some(pluginsWithChecks, function( plugin ){
+			var pluginResults = _.map(pluginsWithChecks, function( plugin ){
 				return plugin[ methodName ].apply( this, args );
 			});
+
+			// Are there any non boolean results? If so: combine those returned objects
+			// and return that new combined object!
+			var nonBooleanPluginResults = _.reject(pluginResults, function( result ){
+				return Match.test( result, Boolean );
+			});
+
+			// TODO: WHICH ONE TO CHOOSE IF THERE ARE SEVERAL
+			if (nonBooleanPluginResults.length > 0)
+				return nonBooleanPluginResults[0];
+			return true;
 
 		}
 
@@ -240,40 +251,48 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	// Method for converting initData to correct data types
 	passedConstructor.prototype.prepareDataToCorrectTypes = function ( data ) {
 
-		var that = this;
+		var instance = this;
 
 		var getValueAsType = function ( value, key ) {
 
-			var valueType = that.getCurrentTypeStructure()[key];
+			var ordinaryMethod = function( instance, value, key  ) {
 
-			// Check for normal types and just return those
-			if ( valueType && valueType.name && valueType.name.search(/String|Number/g) > -1)
+				var valueType = instance.getCurrentTypeStructure()[key];
+
+				// Check for normal types and just return those
+				if ( valueType && valueType.name && valueType.name.search(/String|Number/g) > -1)
+					return value;
+
+				// Is it an array?
+				// Iterate this method over every field
+				if ( Match.test( value, Array ) ) {
+					return _.map( value, function ( arrayVal ) {
+						// Is it a "plain" object? Then transform it into a non-plain
+						// from the type provided in the typeStructure!
+						// Else just return the current array value
+						if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[ 0 ].name ] )
+							return new ReactiveConstructors[ valueType[ 0 ].name ]( arrayVal );
+						return arrayVal;
+					});
+				}
+
+				// Is it a "plain" object? Then transform it into a non-plain
+				// from the type provided in the typeStructure!
+				if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.name ] )
+					return new ReactiveConstructors[ valueType.name ]( value );
+
+				// If the value is a string, and there is a window object with this name,
+				// create a new instance from it!
+				if ( Match.test( value, String ) && valueType && window[ valueType.name ] )
+					return new window[ valueType.name ]( value );
+
 				return value;
 
-			// Is it an array?
-			// Iterate this method over every field
-			if ( Match.test( value, Array ) ) {
-				return _.map( value, function ( arrayVal ) {
-					// Is it a "plain" object? Then transform it into a non-plain
-					// from the type provided in the typeStructure!
-					// Else just return the current array value
-					if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[ 0 ].name ] )
-						return new ReactiveConstructors[ valueType[ 0 ].name ]( arrayVal );
-					return arrayVal;
-				});
-			}
+			};
 
-			// Is it a "plain" object? Then transform it into a non-plain
-			// from the type provided in the typeStructure!
-			if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.name ] )
-				return new ReactiveConstructors[ valueType.name ]( value );
+			var args = [ instance, value, key, ordinaryMethod ];
 
-			// If the value is a string, and there is a window object with this name,
-			// create a new instance from it!
-			if ( Match.test( value, String ) && valueType && window[ valueType.name ] )
-				return new window[ valueType.name ]( value );
-
-			return value;
+			return instance.getPluginOverrides('setValueToCorrectType', args );
 
 		};
 
@@ -398,34 +417,42 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 
 	// Method for initiating the ReactiveConstructor.
-	passedConstructor.prototype.initReactiveValues = function ( initData ) {
+	passedConstructor.prototype.initReactiveValues = function ( initData ) {	
 
-		// Setup the type of this constructor
-		this.setType( initData );
-		
-		// Remove the type key!
-		// TODO: This needs to be handled in a cleaner way probably!
-		if (initData && initData[ typeKey ])
-			delete initData[ typeKey ];
+		var ordinaryMethod = function( instance, initData ) {
 
-		// Setup the init data, setting default data and bare data
-		// (Strings should be set to "" and numbers to 0 if no default or init value is set)
-		initData = this.setupInitValues( initData );
-		initData = this.prepareDataToCorrectTypes( initData );
+			// Setup the type of this constructor
+			instance.setType( initData );
+			
+			// Remove the type key!
+			// TODO: This needs to be handled in a cleaner way probably!
+			if (initData && initData[ typeKey ])
+				delete initData[ typeKey ];
 
-		// Set the reactiveData source for this object.
-		this.reactiveData = new ReactiveVar( initData );
+			// Setup the init data, setting default data and bare data
+			// (Strings should be set to "" and numbers to 0 if no default or init value is set)
+			initData = instance.setupInitValues( initData );
+			initData = instance.prepareDataToCorrectTypes( initData );
 
-		// Setup all type specific methods
-		this.setupTypeMethods( this );
+			// Set the reactiveData source for this object.
+			instance.reactiveData = new ReactiveVar( initData );
 
-		// Init all plugins on this instance
-		that.initPluginsOnInstance( this );
+			// Setup all type specific methods
+			instance.setupTypeMethods( instance );
 
-		if (!this.checkReactiveValues())
-			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
+			// Init all plugins on this instance
+			that.initPluginsOnInstance( instance );
 
-		return true;
+			if (!instance.checkReactiveValues())
+				throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
+
+			return true;
+
+		};
+
+		var args = [ this, initData, ordinaryMethod ];
+
+		return this.getPluginOverrides('initReactiveValues', args );
 
 	};
 
