@@ -4,130 +4,133 @@
 /* global Invoice:true */
 
 Invoices = new Meteor.Collection('invoices');
-
-if (Meteor.isServer)
-  return false;
+Clients = new Meteor.Collection('clients');
+Persons = new Meteor.Collection('persons');
 
 // Create a reactive constructor which can be used in tests.
-Person = new ReactiveConstructor(function Person( initData ) {
+Person = new ReactiveConstructor(function Person() {
 
-  var that = this;
+  this.initReactiveValues( arguments[0] );
 
-  that.initData = initData || {};
-
-  that.typeStructure = [{
-    type: 'worker',
-    fields: {
-      name: String,
-      title: String,
-      age: Number,
-      children: [ Person ]
+}, function () {
+  return {
+    cmsOptions: {
+      collection: Persons
     },
-    defaultData: {
-      name: 'Kristoffer Klintberg',
-      title: 'Designer',
-      age: 30,
-      children: []
-    }
-  }, {
-    type: 'husband',
-    fields: {
-      age: Number,
-      wife: Person
-    },
-    defaultData: {
-      age: 49
-    }
-  }, {
-    type: 'wife',
-    fields: {
-      age: Number,
-      happy: Boolean
-    },
-    defaultData: {
-      age: 54
-    }
-  }, {
-    type: 'child',
-    fields: {
-      age: Number,
-      parents: [ Person ]
-    },
-    methods: {
-      isTeenager: function () {
-        var age = this.getReactiveValue('age');
-        return age > 12 && age < 20;
-      },
-      getAgePlus: function ( years ) {
-        check( years, Number );
-        return this.getReactiveValue('age') + years;
-      },
-      addYears: function ( years ) {
-        check( years, Number );
-        var age = this.getReactiveValue('age');
-        return this.setReactiveValue('age', age + years );
+    globalValues: {
+      fields: {
+        age: Number,
+        name: String,
+        children: [ Person ],
+        sex: String
       }
-    }
-  }];
-
-  that.initReactiveValues();
-
+    },
+    typeStructure: [{
+      type: 'worker',
+      fields: {
+        title: String
+      },
+      defaultData: {
+        name: 'Kristoffer Klintberg',
+        title: 'Designer',
+        age: 30,
+        children: []
+      },
+      cmsOptions: {
+        filter: {
+          children: ['worker', 'child']
+        }
+      }
+    }, {
+      type: 'husband',
+      fields: {
+        wife: Person,
+        buddies: [ Person ],
+        happy: Boolean
+      },
+      defaultData: {
+        age: 49,
+        sex: 'male',
+        happy: true
+      },
+      cmsOptions: {
+        filter: {
+          wife: ['wife']
+        },
+        exclude: {
+          buddies: ['wife', 'child'],
+          children: ['wife', 'husband']
+        }
+      }
+    }, {
+      type: 'wife',
+      fields: {
+        happy: Boolean,
+        bff: Person
+      },
+      defaultData: {
+        age: 54,
+        sex: 'female',
+        happy: false
+      },
+      cmsOptions: {
+        exclude: {
+          bff: ['husband', 'child']
+        }
+      }
+    }, {
+      type: 'child',
+      defaultData: {
+        age: 18
+      },
+      methods: {
+        isTeenager: function () {
+          var age = this.getReactiveValue('age');
+          return age > 12 && age < 20;
+        },
+        getAgePlus: function ( years ) {
+          check( years, Number );
+          return this.getReactiveValue('age') + years;
+        },
+        addYears: function ( years ) {
+          check( years, Number );
+          var age = this.getReactiveValue('age');
+          return this.setReactiveValue('age', age + years );
+        }
+      }
+    }]
+  }; 
 });
 
-Client = new ReactiveConstructor( function Client( initData ) {
+Client = new ReactiveConstructor( function Client() {
 
-  var that = this;
-  
-  that.initData = initData || {};
+  this.initReactiveValues( arguments[0] );
 
-  that.typeStructure = [{
-    type: 'client',
-    fields: {
-      clientName: String,
-      adressStreet: String,
-      // staff: [ Person ],
-      // mainClient: Client
-      // otherClients: [ Client ]
-    }
-  }];
-
-  that.initReactiveValues();
-
+}, function() {
+  return {
+    cmsOptions: {
+      collection: Clients
+    },
+    typeStructure: [{
+      type: 'client',
+      fields: {
+        clientName: String,
+        adressStreet: String
+      },
+      defaultData: {
+        clientName: 'New client'
+      }
+    }]
+  };
 });
 
 client = new Client();
 
-// client.setReactiveValue('mainClient', new Client() );
-
-// client.setReactiveValue('staff', [ person ] );
-
-InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) {
+InvoiceListItem = new ReactiveConstructor(function InvoiceListItem () {
 
   var that = this;
 
-  that.initData = initData;
-
-  that.typeStructure = [{
-    type: 'invoiceListItem',
-    fields: {
-      itemName: String,
-      units: Number,
-      unitPrice: Number,
-      unitDescription: String,
-      tax: Number,
-      taxDescription: String
-    },
-    defaultData: {
-      itemName: '',
-      units: 0,
-      unitPrice: 700,
-      unitDescription: 'timmar',
-      tax: 25,
-      taxDescription: 'moms'
-    }
-  }];
-
-  that.endPrice = function ( context ) {
+  that.endPrice = function () {
     return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
   };
 
@@ -139,34 +142,37 @@ InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) 
     return that.priceAfterTax() - that.endPrice();
   };
 
-  that.initReactiveValues();
+  this.initReactiveValues( arguments[0] );
   
+}, function() {
+  return {
+    typeStructure: [{
+      type: 'invoiceListItem',
+      fields: {
+        itemName: String,
+        units: Number,
+        unitPrice: Number,
+        unitDescription: String,
+        tax: Number,
+        taxDescription: String
+      },
+      defaultData: {
+        itemName: 'Website',
+        units: 35,
+        unitPrice: 700,
+        unitDescription: 'timmar',
+        tax: 25,
+        taxDescription: 'moms'
+      }
+    }]
+  };
 });
 
 var testInvoiceListItem = new InvoiceListItem({ tax: 30 });
 
-Invoice = new ReactiveConstructor(function Invoice ( initData ) {
+Invoice = new ReactiveConstructor(function Invoice () {
 
   var that = this;
-
-  that.initData = initData;
-
-  that.typeStructure = [{
-    type: 'invoice',
-    fields: {
-      _id: String,
-      invoiceName: String,
-      currency: String,
-      items: [ InvoiceListItem ],
-      reference: String,
-      client: Client,
-      superCool: Boolean
-    },
-    defaultData: {
-      invoiceName: 'KK000',
-      superCool: false
-    }
-  }];
 
   // Invoice items
   that.items = {};
@@ -193,31 +199,47 @@ Invoice = new ReactiveConstructor(function Invoice ( initData ) {
     return Invoices.upsert( { _id: dataToSave._id }, dataToSave );
   };
 
-  that.initReactiveValues();
+  this.initReactiveValues( arguments[0] );
 
+}, function() {
+  return {
+    cmsOptions: {
+      collection: Invoices
+    },
+    typeStructure: [{
+      type: 'invoice',
+      fields: {
+        _id: String,
+        invoiceName: String,
+        currency: String,
+        items: [ InvoiceListItem ],
+        reference: String,
+        client: Client,
+        superCool: Boolean
+      },
+      defaultData: {
+        invoiceName: 'KK000',
+        superCool: false
+      }
+    }]
+  };
 });
 
-invoice1 = new Invoice({ invoiceName: 'KK666', items: [ new InvoiceListItem() ] });
+invoice1 = new Invoice({ invoiceName: 'KK001', items: [ new InvoiceListItem() ] });
 
 // invoice1.setReactiveValue('client', client );
-
-invoices = new ReactiveVar( [ invoice1 ] );
 
 person = new Person({ name: 'Stoffe K' });
 
 person2 = new Person({ age: 17, rcType: 'child' });
-console.log( 'Person2 is now ' + person2.getAgePlus(0));
-console.log( ' and he/she will be: ' + person2.getAgePlus( 3 ) + ' in three years!' );
-console.log( 'Person2 is a teenager: ' + person2.isTeenager() );
-console.log( 'Person2 ages six years and is now: ' + person2.addYears( 6 ) );
-console.log( 'Person2 is a teenager after the six years? ' + person2.isTeenager() );
-console.log( 'Person1 should not have a isTeenager method!');
-console.log( 'typeof is: ' + typeof person.isTeenager );
 
 person3 = new Person({ age: 50, rcType: 'child' });
 // person4 = new Person();
 
-var person4 = new Person({ age: 50, rcType: 'worker', children: [{ age: 25, rcType: 'child' }] });
+new Person({ age: 50, rcType: 'worker', children: [{ age: 25, rcType: 'child' }] });
+
+if (Meteor.isServer)
+  return false;
 
 Template.invoiceTestTemplate.helpers({
   person: function () {
@@ -230,16 +252,19 @@ Template.invoiceTestTemplate.helpers({
     return client;
   },
   invoices: function () {
-    return invoices.get();
+    var constructorType = _.findWhere( tempCMSInstances.get(), { constructorName: 'Invoice' });
+    if (!constructorType)
+      return false;
+    return constructorType.items;
   }
 });
 
 Template.invoiceTestTemplate.events({
-  'click .edit-instance': function ( e, tmpl ) {
+  'click .edit-instance': function ( e ) {
 
     e.stopImmediatePropagation();
 
-    this.editPageGet();
+    TEMPcmsPlugin.editPageGet( this );
 
   }
 });

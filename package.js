@@ -15,15 +15,16 @@ Package.onUse(function (api) {
 
   api.addFiles([
     "ie9-type-check-monkey-patch.js",
-    "reactiveConstructorPlugins.js",
-    "reactiveConstructor.js"
+    "reactiveConstructorPlugins.js"
     ], "client");
+
+  api.addFiles(["reactiveConstructor.js"], ["client", "server"]);
 
   api.export([
     "ReactiveConstructor",
     "ReactiveConstructors",
     "ReactiveConstructorPlugin"
-    ], "client");
+    ], ["client", "server"]);
 
 });
 

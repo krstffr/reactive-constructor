@@ -1,118 +1,89 @@
 // Create a reactive constructor which can be used in tests.
-Person = new ReactiveConstructor(function Person( initData ) {
+Person = new ReactiveConstructor(function Person() {
 
-  var that = this;
+  this.initReactiveValues( arguments[0] );
 
-  that.initData = initData || {};
-
-  that.typeStructure = [{
-    type: 'worker',
-    fields: {
-      name: String,
-      title: String,
-      birthDate: Date,
-      age: Number,
-      children: [ Person ]
-    },
-    defaultData: {
-      name: 'Kristoffer Klintberg',
-      title: 'Designer',
-      birthDate: new Date('2015 01 01'),
-      age: 30,
-      children: []
-    }
-  }, {
-    type: 'husband',
-    fields: {
-      wife: Person
-    }
-  }, {
-    type: 'wife',
-    fields: {
-      happy: Boolean
-    }
-  }, {
-    type: 'child',
-    fields: {
-      age: Number,
-      parents: [ Person ]
-    },
-    methods: {
-      isTeenager: function () {
-        var age = this.getReactiveValue('age');
-        return age > 12 && age < 20;
+}, function () {
+  return {
+    typeStructure: [{
+      type: 'worker',
+      fields: {
+        name: String,
+        title: String,
+        birthDate: Date,
+        age: Number,
+        children: [ Person ]
       },
-      getAgePlus: function ( years ) {
-        check( years, Number );
-        return this.getReactiveValue('age') + years;
-      },
-      addYears: function ( years ) {
-        check( years, Number );
-        var age = this.getReactiveValue('age');
-        return this.setReactiveValue('age', age + years );
+      defaultData: {
+        name: 'Kristoffer Klintberg',
+        title: 'Designer',
+        birthDate: new Date('2015 01 01'),
+        age: 30,
+        children: []
       }
-    }
-  }];
-
-  that.initReactiveValues();
-
+    }, {
+      type: 'husband',
+      fields: {
+        wife: Person
+      }
+    }, {
+      type: 'wife',
+      fields: {
+        happy: Boolean
+      }
+    }, {
+      type: 'child',
+      fields: {
+        age: Number,
+        parents: [ Person ]
+      },
+      methods: {
+        isTeenager: function () {
+          var age = this.getReactiveValue('age');
+          return age > 12 && age < 20;
+        },
+        getAgePlus: function ( years ) {
+          check( years, Number );
+          return this.getReactiveValue('age') + years;
+        },
+        addYears: function ( years ) {
+          check( years, Number );
+          var age = this.getReactiveValue('age');
+          return this.setReactiveValue('age', age + years );
+        }
+      }
+    }]
+  }; 
 });
 
 
 
 // A generic "Client"
-Client = new ReactiveConstructor( function Client( initData ) {
+Client = new ReactiveConstructor( function Client() {
 
-  var that = this;
-  
-  that.initData = initData || {};
+  this.initReactiveValues( arguments[0] );
 
-  that.typeStructure = [{
-    type: 'client',
-    fields: {
-      clientName: String,
-      adressStreet: String,
-      staff: [Person]
-    },
-    defaultData: {
-      clientName: 'new client'
-    }
-  }];
-
-  that.initReactiveValues();
-
-});
+}, function () {
+  return {
+    typeStructure: [{
+      type: 'client',
+      fields: {
+        clientName: String,
+        adressStreet: String,
+        staff: [Person]
+      },
+      defaultData: {
+        clientName: 'new client'
+      }
+    }]
+  }});
 
 
 // A generic "Invoice"
-Invoice = new ReactiveConstructor(function Invoice ( initData ) {
+Invoice = new ReactiveConstructor(function Invoice () {
 
   var that = this;
 
-  that.initData = initData;
-
-  that.typeStructure = [{
-    type: 'invoice',
-    fields: {
-      _id: String,
-      invoiceName: String,
-      currency: String,
-      items: [InvoiceListItem],
-      client: Client,
-      invoices: [ Person ],
-      superCool: Boolean
-    },
-    defaultData: {
-      invoiceName: 'KK000',
-      items: [],
-      currency: 'USD',
-      client: new Client(),
-      invoices: [],
-      superCool: false
-    }
-  }];
-
-  // Invoice items methods
   that.items = {};
 
   that.items.getTotal = function ( key ) {
@@ -137,39 +108,40 @@ Invoice = new ReactiveConstructor(function Invoice ( initData ) {
     return Invoices.upsert( { _id: dataToSave._id }, dataToSave );
   };
 
-  that.initReactiveValues();
+  that.initReactiveValues( arguments[0] );
 
+}, function () {
+  return {
+    typeStructure: [{
+      type: 'invoice',
+      fields: {
+        _id: String,
+        invoiceName: String,
+        currency: String,
+        items: [ InvoiceListItem ],
+        client: Client,
+        invoices: [ Person ],
+        superCool: Boolean
+      },
+      defaultData: {
+        invoiceName: 'KK000',
+        items: [],
+        currency: 'USD',
+        client: new Client(),
+        invoices: [],
+        superCool: false
+      }
+    }]
+  };
 });
 
 
 
 
 // A generic "InvoiceListItem"
-InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) {
+InvoiceListItem = new ReactiveConstructor(function InvoiceListItem () {
 
   var that = this;
-
-  that.typeStructure = [{
-    type: 'invoiceListItem',
-    fields: {
-      itemName: String,
-      units: Number,
-      unitPrice: Number,
-      unitDescription: String,
-      tax: Number,
-      taxDescription: String
-    },
-    defaultData: {
-      itemName: '',
-      units: 0,
-      unitPrice: 700,
-      unitDescription: 'timmar',
-      tax: 25,
-      taxDescription: 'moms'
-    }
-  }];
-
-  that.initData = initData;
 
   that.endPrice = function () {
     return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
@@ -183,8 +155,30 @@ InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) 
     return that.priceAfterTax() - that.endPrice();
   };
 
-  that.initReactiveValues();
+  that.initReactiveValues( arguments[0] );
   
+}, function () {
+  return {
+    typeStructure: [{
+      type: 'invoiceListItem',
+      fields: {
+        itemName: String,
+        units: Number,
+        unitPrice: Number,
+        unitDescription: String,
+        tax: Number,
+        taxDescription: String
+      },
+      defaultData: {
+        itemName: '',
+        units: 0,
+        unitPrice: 700,
+        unitDescription: 'timmar',
+        tax: 25,
+        taxDescription: 'moms'
+      }
+    }]
+  };
 });
 
 
@@ -193,51 +187,49 @@ InvoiceListItem = new ReactiveConstructor(function InvoiceListItem ( initData ) 
 
 
 
-Animal = new ReactiveConstructor(function Animal ( initData ) {
+Animal = new ReactiveConstructor(function Animal () {
 
-  this.initData = initData;
+  this.initReactiveValues( arguments[0] );
 
-  this.globalValues = {
-    fields: {
-      numberOfLegs: Number,
-      hasBrain: Boolean,
-      canMove: Boolean,
-      lifeExpectancyInYears: Number
+}, function () {
+  return {
+    globalValues: {
+      fields: {
+        numberOfLegs: Number,
+        hasBrain: Boolean,
+        canMove: Boolean,
+        lifeExpectancyInYears: Number
+      },
+      defaultData: {
+        hasBrain: true,
+        canMove: true,
+        lifeExpectancyInYears: 10
+      }
     },
-    defaultData: {
-      // This is kind of silly default data, but makes sense sort of?
-      hasBrain: true,
-      canMove: true,
-      lifeExpectancyInYears: 10
-    }
+    typeStructure: [{
+      type: 'dog',
+      defaultData: {
+        hasBrain: true
+      }
+    }, {
+      type: 'crippledCat',
+      defaultData: {
+        numberOfLegs: 3,
+        lifeExpectancyInYears: 7
+      }
+    }, {
+      type: 'duck',
+      defaultData: {
+        numberOfLegs: 2,
+        hasBrain: true
+      }
+    }, {
+      type: 'amoeba',
+      defaultData: {
+        hasBrain: false,
+        numberOfLegs: 0,
+        lifeExpectancyInYears: 0.1
+      }
+    }]
   };
-
-  this.typeStructure = [{
-    type: 'dog',
-    defaultData: {
-      hasBrain: true
-    }
-  }, {
-    type: 'crippledCat',
-    defaultData: {
-      numberOfLegs: 3,
-      lifeExpectancyInYears: 7
-    }
-  }, {
-    type: 'duck',
-    defaultData: {
-      numberOfLegs: 2,
-      hasBrain: true
-    }
-  }, {
-    type: 'amoeba',
-    defaultData: {
-      hasBrain: false,
-      numberOfLegs: 0,
-      lifeExpectancyInYears: 0.1
-    }
-  }];
-
-  this.initReactiveValues();
-
 });

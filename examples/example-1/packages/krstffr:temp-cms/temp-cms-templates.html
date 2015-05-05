@@ -1,3 +1,21 @@
+<template name="editTemplate__selectOverview">
+
+	<div class="temp-select-overview__fader"></div>
+
+	<div class="temp-select-overview">
+	
+	<h2>{{ headline }}</h2>
+
+	{{#each selectableItems }}
+
+		<button>{{ buttonValue }}</button>
+
+	{{/each}}
+
+	</div>
+
+</template>
+
 <template name="editTemplate__noReactiveInstanceSet">
 	<label>
 		{{> editTemplate__labelString }}
@@ -7,7 +25,8 @@
 
 <template name="editTemplate__labelString">
 	<span class="">
-		{{ key }} &lt;{{ type }}&gt;
+		{{ key }}
+		<span class="temp-input-value-type">&lt;{{ type }}&gt;</span>
 	</span>
 </template>
 
@@ -63,42 +82,96 @@
 	<div class="wrap">
 
 		<h2>
-			{{ className }}{{#if type }},
-				type: <em>{{ type }}</em>
-			{{/if}}
-			<a class="temp-remove-collection-duplicate">Duplicate</a>
+			
+			{{ getType }}
+			<span class="temp-constructor-name">{{ constructorName }}</span>
+			
 			<a class="temp-remove-collection-item">Remove</a>
+			<a class="temp-remove-collection-duplicate">Duplicate</a>
+			<a class="temp-open-child-instance">Open</a>
+
+			{{#if isSingleInstance }}
+				<a class="temp-remove-nested-rc-instance">Remove instance</a>
+			{{/if}}
+
 		</h2>
 
 		{{! Iterate over all the fields, get the corresponding field }}
 		{{#each getReactiveValuesAsArray }}
 
-			{{> Template.dynamic template=getTemplateFromType data=data }}
+			{{> Template.dynamic template=getTemplateFromType }}
 
 		{{/each }}
 
-		<!-- <button class="save">Save!</button> -->
-
 	</div>
-	
+
 </template>
 
 <template name="editTemplate__wrapper">
 
 	<div class="wrapper wrapper--hidden">
 
-		{{> editTemplate }}
+		<div class="wrapper__editable-fields">
+
+			{{> editTemplate }}
+
+		</div>
 
 		<div class="wrapper__buttons">
 
-			<button>Save</button>
-
-			<button>Duplicate</button>
-
+			<button class="temp-cms-publish-button">Publish</button>
+			<button class="temp-cms-save-draft-button">Save draft</button>
+			<button class="temp-cms-duplicate-button">Duplicate</button>
+			<button class="temp-cms-remove-button">Remove</button>
 			<button class="temp-cms-close-button">Close</button>
 
 		</div>
 
 	</div>
 
+</template>
+
+<template name="tempCMS__loadSavedDoc">
+
+	<h1>Open saved document</h1>
+
+	{{#if currentUser }}
+
+		{{#if Template.subscriptionsReady }}
+						
+			{{#each tempCms__constructors }}
+
+				<h3>{{ constructorName }}</h3>
+
+				<ul>
+
+					{{#each items }}
+
+						<li>
+							<a class="temp-cms-edit-doc-from-list">
+								{{ ../constructorName }} {{ getType }}: {{ tempCmsName }}
+							</a>
+						</li>
+
+					{{/each}}
+
+					<li>
+						<a class="temp-cms-create-doc-from-list">
+						Create new {{ constructorName }}</a>
+					</li>
+
+				</ul>
+			
+			{{/each}}
+
+	  {{else}}
+	    <h4>Loading...</h4>
+	  {{/if}}
+
+  {{else}}
+
+  	<p>You need to login.</p>
+
+  {{/if}}
+	
 </template>

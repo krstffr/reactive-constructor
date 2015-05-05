@@ -3,37 +3,72 @@ var typeKey = 'rcType';
 // Holder for all current constructors
 ReactiveConstructors = {};
 
-ReactiveConstructor = function( passedClass ) {
+ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 	var that = this;
+
+	// Make sure there are passed constructorDefaults
+	if(!constructorDefaults)
+		throw new Meteor.Error('no-constructor-defaults-passed', 'No constructor defaults passed for: ' + passedConstructor.name );
+
+	// Add the default to the constructor
+	passedConstructor.constructorDefaults = constructorDefaults;
+
+	if (Meteor.isServer){
+		// Add this method since it's still being called (on server as well)
+		passedConstructor.prototype.initReactiveValues = function() { return true; };
+		// Make sure we're not overwriting an existing constructor, then add it
+		if (ReactiveConstructors[ passedConstructor.name ])
+			throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + passedConstructor.name + ' is already defined!');
+		ReactiveConstructors[ passedConstructor.name ] = passedConstructor;
+		return passedConstructor;
+	}
+
+	// Method for retrieving all the defined types of a constructor
+	passedConstructor.getTypeNames = function() {
+		return _.pluck( passedConstructor.constructorDefaults().typeStructure, 'type' );
+	};
 
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
 	// TODO: How to make this more testable?
-	passedClass.prototype.setupTypeMethods = function ( reactiveObject ) {
+	passedConstructor.prototype.setupTypeMethods = function ( reactiveObject ) {
 		_.each(reactiveObject.getCurrentTypeMethods(), function( method, methodName ){
 			reactiveObject[ methodName ] = method;
 		});
 	};
 
 	// Method for getting all custom methods of this 
-	passedClass.prototype.getCurrentTypeMethods = function () {
-		return _.findWhere( this.typeStructure, { type: this.getType() }).methods;
+	passedConstructor.prototype.getCurrentTypeMethods = function () {
+		return _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).methods;
 	};
 
 	// Method for returning the current structure for the current type
-	passedClass.prototype.getCurrentTypeStructure = function () {
+	passedConstructor.prototype.getCurrentTypeStructure = function () {
+
+		var globalFields = {};
+		
 		// Get the fields specific for this type
-		var typeFields = _.findWhere( this.typeStructure, { type: this.getType() }).fields;
+		// var typeFields = _.findWhere( this.typeStructure, { type: this.getType() }).fields;
+		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).fields || {};
+
 		// If there are no global fields, just return the type specific fields
-		if (!this.globalValues || !this.globalValues.fields)
-			return typeFields;
+		if (passedConstructor.constructorDefaults().globalValues && passedConstructor.constructorDefaults().globalValues.fields)
+			globalFields = passedConstructor.constructorDefaults().globalValues.fields;
+
+		// A plugin might have added some fields, add those as well to the mix
+		var pluginTypeFields = _.reduce(ReactiveConstructorPlugins, function( memo, plugin ){
+			if (plugin.options.pluginTypeStructure)
+				return _.assign( memo, plugin.options.pluginTypeStructure );
+		}, {});
+
 		// Else combine the fields and return all of them
-		return _.assign( this.globalValues.fields, typeFields );
+		return _.assign( globalFields, typeFields, pluginTypeFields );
+
 	};
 
 	// Method for removing a value of a reactive item.
-	passedClass.prototype.unsetReactiveValue = function ( key ) {
+	passedConstructor.prototype.unsetReactiveValue = function ( key ) {
 
 		// Get all the data
 		var reactiveData = this.reactiveData.get();
@@ -52,7 +87,7 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// Method for setting the value of a reactive item.
-	passedClass.prototype.setReactiveValue = function ( key, value ) {
+	passedConstructor.prototype.setReactiveValue = function ( key, value ) {
 
 		// Make sure the passed value has the correct type
 		if (!this.checkReactiveValueType( key, value ))
@@ -77,7 +112,7 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// Get the value of the reactive data from key
-	passedClass.prototype.getReactiveValue = function ( key ) {
+	passedConstructor.prototype.getReactiveValue = function ( key ) {
 		if (!this.reactiveData)
 			return false;
 		return this.reactiveData.get()[key];
@@ -85,49 +120,115 @@ ReactiveConstructor = function( passedClass ) {
 
 	// Check the type of a passed value compared to what has been defined
 	// by the user.
-	passedClass.prototype.checkReactiveValueType = function ( key, value ) {
-		check(value, this.getCurrentTypeStructure()[key]);
-		return true;
+	passedConstructor.prototype.checkReactiveValueType = function ( key, passedValue ) {
+		
+		var currentTypeToCheck = this.getCurrentTypeStructure()[ key ];
+
+		var ordinaryMethod = function( passedValue, currentTypeToCheck ) {
+			check( passedValue, currentTypeToCheck );
+			return true;
+		};
+
+		var args = [ passedValue, currentTypeToCheck, ordinaryMethod ];
+
+		return this.getPluginOverrides('checkReactiveValueType', args );
+		
 	};
 
-	// Check the entire structure of the reactive data.
+	// This method allows plugins to override a "native" (ordinary) method.
+	// The "native" method MUST be provided as the last item in the args array!
+	passedConstructor.prototype.getPluginOverrides = function( methodName, args ) {
+
+		// The ordinary method MUST be provided as the last item
+		var ordinaryMethod = _.last(args);
+
+		check( methodName, String );
+		check( ordinaryMethod, Function );
+
+		// Allow plugins to override this check
+		if (ReactiveConstructorPlugins.length > 0){
+
+			// Get all plugins which have this method.
+			var pluginsWithChecks = _.filter( ReactiveConstructorPlugins, function(plugin){
+				return Match.test( plugin[ methodName ], Function );
+			});
+
+			// If there are none, just return the ordinary method
+			if (pluginsWithChecks.length < 1)
+				return ordinaryMethod.apply( this, _.initial( args ) );
+
+			// If one of the plugins allows this method, accept it
+			// TODO: Does this make sense? Probably?
+			var pluginResults = _.map(pluginsWithChecks, function( plugin ){
+				return plugin[ methodName ].apply( this, args );
+			});
+
+			// Are there any non boolean results? If so: combine those returned objects
+			// and return that new combined object!
+			var nonBooleanPluginResults = _.reject(pluginResults, function( result ){
+				return Match.test( result, Boolean );
+			});
+
+			// TODO: WHICH ONE TO CHOOSE IF THERE ARE SEVERAL
+			if (nonBooleanPluginResults.length > 0)
+				return nonBooleanPluginResults[0];
+			return true;
+
+		}
+
+		return ordinaryMethod.apply( this, _.initial( args ) );
+
+	};
+
+
 	// Either check the data of the the instance, or the passed data.
-	passedClass.prototype.checkReactiveValues = function ( values ) {
+	passedConstructor.prototype.checkReactiveValues = function ( values ) {
 
 		var dataToCheck = values || this.reactiveData.get();
+		var currentTypeStructure = this.getCurrentTypeStructure();
 
-		// We need to allow the existence of unset values,
-		// for examples if a Person has a father field of type
-		// Person, this field must be able to be empty.
-		// So here we get all the keys which have a value, which
-		// we later use to typecheck.
-		var keysToCheck  = _.chain( dataToCheck )
-		.map( function( value, key ){
-			if (value === undefined)
-				return false;
-			return key;
-		})
-		.compact()
-		.value();
+		var ordinaryMethod = function( dataToCheck, currentTypeStructure ) {
 
-		check(
-			_.pick( dataToCheck, keysToCheck ),
-			_.pick( this.getCurrentTypeStructure(), keysToCheck )
-			);
+			// We need to allow the existence of unset values,
+			// for examples if a Person has a father field of type
+			// Person, this field must be able to be empty.
+			// So here we get all the keys which have a value, which
+			// we later use to typecheck.
+			var keysToCheck  = _.chain( dataToCheck )
+			.map( function( value, key ){
+				if (value === undefined)
+					return false;
+				return key;
+			})
+			.compact()
+			.value();
 
-		return true;
+			check(
+				_.pick( dataToCheck, keysToCheck ),
+				_.pick( currentTypeStructure, keysToCheck )
+				);
+
+			return true;
+
+		};
+
+		var args = [ dataToCheck, currentTypeStructure, ordinaryMethod ];
+
+		return this.getPluginOverrides('checkReactiveValues', args );
 
 	};
 
 	// Method for returning the entire object as only the reactive
 	// data, with no nested types with methods and stuff.
-	passedClass.prototype.getDataAsObject = function () {
+	passedConstructor.prototype.getDataAsObject = function () {
 
 		// Map over the reactive data object
-		return _.mapValues(this.reactiveData.get(), function ( value ) {
+		var dataToReturn = _.assign({ rcType: this.getType() }, this.reactiveData.get() );
 
-			// Does the value have this method? Then it's "one of us", recurse!
-			if ( Match.test( value.getDataAsObject, Function ) )
+		return _.mapValues(dataToReturn, function ( value ) {
+
+			// Does the value have this method? Then it's a reactiveConstructor instance, recurse!
+			if ( value && Match.test( value.getDataAsObject, Function ) )
 				value = value.getDataAsObject();
 
 			// Is it an array of items?
@@ -148,42 +249,50 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// Method for converting initData to correct data types
-	passedClass.prototype.prepareDataToCorrectTypes = function ( data ) {
+	passedConstructor.prototype.prepareDataToCorrectTypes = function ( data ) {
 
-		var that = this;
+		var instance = this;
 
 		var getValueAsType = function ( value, key ) {
 
-			var valueType = that.getCurrentTypeStructure()[key];
+			var ordinaryMethod = function( instance, value, key  ) {
 
-			// Check for normal types and just return those
-			if ( valueType && valueType.name && valueType.name.search(/String|Number/g) > -1)
+				var valueType = instance.getCurrentTypeStructure()[key];
+
+				// Check for normal types and just return those
+				if ( valueType && valueType.name && valueType.name.search(/String|Number/g) > -1)
+					return value;
+
+				// Is it an array?
+				// Iterate this method over every field
+				if ( Match.test( value, Array ) ) {
+					return _.map( value, function ( arrayVal ) {
+						// Is it a "plain" object? Then transform it into a non-plain
+						// from the type provided in the typeStructure!
+						// Else just return the current array value
+						if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[ 0 ].name ] )
+							return new ReactiveConstructors[ valueType[ 0 ].name ]( arrayVal );
+						return arrayVal;
+					});
+				}
+
+				// Is it a "plain" object? Then transform it into a non-plain
+				// from the type provided in the typeStructure!
+				if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.name ] )
+					return new ReactiveConstructors[ valueType.name ]( value );
+
+				// If the value is a string, and there is a window object with this name,
+				// create a new instance from it!
+				if ( Match.test( value, String ) && valueType && window[ valueType.name ] )
+					return new window[ valueType.name ]( value );
+
 				return value;
 
-			// Is it an array?
-			// Iterate this method over every field
-			if ( Match.test( value, Array ) ) {
-				return _.map( value, function ( arrayVal ) {
-					// Is it a "plain" object? Then transform it into a non-plain
-					// from the type provided in the typeStructure!
-					// Else just return the current array value
-					if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[ 0 ].name ] )
-						return new ReactiveConstructors[ valueType[ 0 ].name ]( arrayVal );
-					return arrayVal;
-				});
-			}
+			};
 
-			// Is it a "plain" object? Then transform it into a non-plain
-			// from the type provided in the typeStructure!
-			if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.name ] )
-				return new ReactiveConstructors[ valueType.name ]( value );
+			var args = [ instance, value, key, ordinaryMethod ];
 
-			// If the value is a string, and there is a window object with this name,
-			// create a new instance from it!
-			if ( Match.test( value, String ) && valueType && window[ valueType.name ] )
-				return new window[ valueType.name ]( value );
-
-			return value;
+			return instance.getPluginOverrides('setValueToCorrectType', args );
 
 		};
 
@@ -194,20 +303,20 @@ ReactiveConstructor = function( passedClass ) {
 	// Method for returning the default values for the type, as defined in the
 	// constructor function. If there are global default sets, return those as well 
 	// (however they will be overwritten by the type specific data)
-	passedClass.prototype.getDefaultValues = function () {
+	passedConstructor.prototype.getDefaultValues = function () {
 		// Get the default data specific for this type
-		var typeDefaults = _.findWhere( this.typeStructure, { type: this.getType() }).defaultData || {};
+		var typeDefaults = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).defaultData || {};
 		// If there are no global defaults, just return the type specific defaults
-		if (!this.globalValues || !this.globalValues.defaultData)
+		if (!passedConstructor.constructorDefaults().globalValues || !passedConstructor.constructorDefaults().globalValues.defaultData)
 			return typeDefaults;
 		// Else combine the data and return all of it
-		return _.assign( this.globalValues.defaultData, typeDefaults );
+		return _.assign( passedConstructor.constructorDefaults().globalValues.defaultData, typeDefaults );
 	};
 
 	// Method for setting up all initValues, no matter what initValues
 	// the user has passed. The initValues will be constructed from
 	// the typeStructure the user has set for this type.
-	passedClass.prototype.setupInitValues = function ( initValues ) {
+	passedConstructor.prototype.setupInitValues = function ( initValues ) {
 		
 		// Create a "bare" value from the type structure.
 		// For example: a String will return "", a Number will return 0
@@ -219,7 +328,7 @@ ReactiveConstructor = function( passedClass ) {
 			if ( Match.test( val, Array ) )
 				return [];
 
-			// If it's niot an array, and not a String/Number or Boolean,
+			// If it's not an array, and not a String/Number or Boolean,
 			// don't return anything.
 			// BUG IN <IE9, .name does not work!
 			if (val.name.search(/String|Number|Boolean/g) < 0)
@@ -247,15 +356,15 @@ ReactiveConstructor = function( passedClass ) {
 	};
 
 	// TODO: This needs to be handled in a cleaner way probably!
-	passedClass.prototype.setType = function ( initData ) {
+	passedConstructor.prototype.setType = function ( initData ) {
 		
-		typeValue = (initData && initData[ typeKey ]) ? initData[ typeKey ] : this.typeStructure[0].type;
+		var typeValue = (initData && initData[ typeKey ]) ? initData[ typeKey ] : passedConstructor.constructorDefaults().typeStructure[0].type;
 		
 		// Make sure it's a string!
 		check(typeValue, String );
 
 		// Make sure the type is actually defined!
-		if (!_.findWhere( this.typeStructure, { type: typeValue }))
+		if (!_.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: typeValue }))
 			throw new Meteor.Error('reactiveData-wrong-type', 'There is no type: '+typeValue+'!');
 
 		this[ typeKey ] = typeValue;
@@ -267,79 +376,99 @@ ReactiveConstructor = function( passedClass ) {
 	// Method for returning the current type of the object.
 	// Either return this.type or the first type declared in
 	// the typeStructure.
-	passedClass.prototype.getType = function () {
+	passedConstructor.prototype.getType = function () {
 		return this[ typeKey ];
 	};
 
 
-	// Method for running plugins' init methods
-	that.initPlugins = function ( instance ) {
+	// Method for running plugins' init methods on INSTANCE
+	that.initPluginsOnInstance = function ( instance ) {
 
 		if (!ReactiveConstructorPlugins)
 			return false;
 
 		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
 			
-			// Run all plugin initClass on class
-			if ( Match.test( RCPlugin.options.initClass, Function ) )
-				passedClass = RCPlugin.options.initClass( passedClass );
-
 			// Run initInstance method on this instance
 			if ( Match.test( RCPlugin.options.initInstance, Function ) )
 				instance = RCPlugin.options.initInstance( instance );
-		
+
 		});
+		
+	};
+
+	// Method for running plugins' init methods on CONSTRUCTOR
+	var initPluginsOnConstructor = function ( passedConstructor ) {
+
+		if (!ReactiveConstructorPlugins)
+			return false;
+
+		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
+			
+			// Run all plugin initConstructor on constructor
+			if ( Match.test( RCPlugin.options.initConstructor, Function ) )
+				passedConstructor = RCPlugin.options.initConstructor( passedConstructor );
+			
+		});
+
+		return passedConstructor;
 		
 	};
 
 
 	// Method for initiating the ReactiveConstructor.
-	passedClass.prototype.initReactiveValues = function () {
+	passedConstructor.prototype.initReactiveValues = function ( initData ) {	
 
-		// Setup the type of this constructor
-		this.setType( this.initData );
-		
-		// Remove the type key!
-		// TODO: This needs to be handled in a cleaner way probably!
-		if (this.initData && this.initData[ typeKey ])
-			delete this.initData[ typeKey ];
+		var ordinaryMethod = function( instance, initData ) {
 
-		// Setup the init data, setting default data and bare data
-		// (Strings should be set to "" and numbers to 0 if no default or init value is set)
-		var initData = this.setupInitValues( this.initData );
-		initData = this.prepareDataToCorrectTypes( initData );
+			// Setup the type of this constructor
+			instance.setType( initData );
+			
+			// Remove the type key!
+			// TODO: This needs to be handled in a cleaner way probably!
+			if (initData && initData[ typeKey ])
+				delete initData[ typeKey ];
 
-		// Init all plugins
-		that.initPlugins( this );
+			// Setup the init data, setting default data and bare data
+			// (Strings should be set to "" and numbers to 0 if no default or init value is set)
+			initData = instance.setupInitValues( initData );
+			initData = instance.prepareDataToCorrectTypes( initData );
 
-		// Set the reactiveData source for this object.
-		this.reactiveData = new ReactiveVar( initData );
+			// Set the reactiveData source for this object.
+			instance.reactiveData = new ReactiveVar( initData );
 
-		// Setup all type specific methods
-		this.setupTypeMethods( this );
+			// Setup all type specific methods
+			instance.setupTypeMethods( instance );
 
-		// TODO: Make a decision about this:
-		// Maybe delete the initData??
-		// Will we ever need it later? Probably not?
-		delete this.initData;
+			// Init all plugins on this instance
+			that.initPluginsOnInstance( instance );
 
-		if (!this.checkReactiveValues())
-			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
+			if (!instance.checkReactiveValues())
+				throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
 
-		return true;
+			return true;
+
+		};
+
+		var args = [ this, initData, ordinaryMethod ];
+
+		return this.getPluginOverrides('initReactiveValues', args );
 
 	};
 
-	// Store the class in the ReactiveConstructors object.
+	// Init all plugins on this constructor
+	passedConstructor = initPluginsOnConstructor( passedConstructor );
+
+	// Store the constructor in the ReactiveConstructors object.
 	// This is so that we can create new instances of these constructors
 	// later when needed!
 
-	// First: Make sure we're not overwriting an existing class
-	if (ReactiveConstructors[ passedClass.name ])
-		throw new Meteor.Error('reactive-class-already-defined', 'The reactive class' + passedClass.name + ' is already defined!');
+	// First: Make sure we're not overwriting an existing constructor
+	if (ReactiveConstructors[ passedConstructor.name ])
+		throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + passedConstructor.name + ' is already defined!');
 
-	ReactiveConstructors[ passedClass.name ] = passedClass;
+	ReactiveConstructors[ passedConstructor.name ] = passedConstructor;
 	
-	return passedClass;
+	return passedConstructor;
 
 };
