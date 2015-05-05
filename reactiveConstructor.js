@@ -46,11 +46,12 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 	// Method for returning the current structure for the current type
 	passedConstructor.prototype.getCurrentTypeStructure = function () {
 
+		var instance = this;
+
 		var globalFields = {};
 		
 		// Get the fields specific for this type
-		// var typeFields = _.findWhere( this.typeStructure, { type: this.getType() }).fields;
-		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).fields || {};
+		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: instance.getType() }).fields || {};
 
 		// If there are no global fields, just return the type specific fields
 		if (passedConstructor.constructorDefaults().globalValues && passedConstructor.constructorDefaults().globalValues.fields)
@@ -59,7 +60,7 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 		// A plugin might have added some fields, add those as well to the mix
 		var pluginTypeFields = _.reduce(ReactiveConstructorPlugins, function( memo, plugin ){
 			if (plugin.options.pluginTypeStructure)
-				return _.assign( memo, plugin.options.pluginTypeStructure );
+				return _.assign( memo, plugin.options.pluginTypeStructure( instance ) );
 		}, {});
 
 		// Else combine the fields and return all of them
