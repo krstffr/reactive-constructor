@@ -191,8 +191,8 @@ Tinytest.add('Invoice - Test some methods', function ( test ) {
 	var testInvoice = new Invoice();
 
 	// Test both methods for their deafult values
-	test.equal( testInvoice.items.getTotal('endPrice'), 0 );
-	test.equal( testInvoice.items.getTotal('tax'), 0 );
+	test.equal( testInvoice['items/getTotal']('endPrice'), 0 );
+	test.equal( testInvoice['items/getTotal']('tax'), 0 );
 
   // Create a new item and add it to the invoice
   var units     = 10;
@@ -210,8 +210,8 @@ Tinytest.add('Invoice - Test some methods', function ( test ) {
   testInvoice.setReactiveValue('items', items.concat([newItem]) );
 
   // Test both methods again.
-  test.equal( testInvoice.items.getTotal('endPrice'), units * unitPrice );
-  test.equal( testInvoice.items.getTotal('tax'), testInvoice.items.getTotal('endPrice') * tax / 100 );
+  test.equal( testInvoice['items/getTotal']('endPrice'), units * unitPrice );
+  test.equal( testInvoice['items/getTotal']('tax'), testInvoice['items/getTotal']('endPrice') * tax / 100 );
 
 });
 
