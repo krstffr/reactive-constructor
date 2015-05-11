@@ -66,7 +66,8 @@ Schedule = new ReactiveConstructor('Schedule', function() {
         startDate: Date,
         rows: Number,
         weeksPerRow: Number,
-        people: String
+        people: String,
+        weirdNestedSchedule: Schedule
       },
       defaultData: {
         startDate: getFirstDayOfWeekFromDate( new Date() ),

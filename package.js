@@ -1,7 +1,7 @@
 Package.describe({
 	name: "krstffr:reactive-constructor",
   summary: "Create reactive objects from these constructors.",
-	version: "1.1.0-alpha"
+	version: "1.1.0-alpha-2"
 });
 
 Package.onUse(function (api) {

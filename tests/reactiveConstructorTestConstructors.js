@@ -185,6 +185,9 @@ Animal = new ReactiveConstructor('Animal', function () {
       methods: {
         makeSound: function() {
           return '"grrrrr!" says: ' + this.getType();
+        },
+        makeLoudNoise: function() {
+          return this.makeSound().toUpperCase();
         }
       }
     },

@@ -324,6 +324,19 @@ Tinytest.add('getCurrentTypeMethods()', function ( test ) {
 
 });
 
+Tinytest.add('getGlobalMethods()', function( test ) {
+
+	var animal = new Animal();
+
+	test.isTrue( Match.test( animal.getGlobalMethods().makeSound, Function ) );
+	test.isTrue( Match.test( animal.getGlobalMethods().makeLoudNoise, Function ) );
+
+	test.equal( animal.getGlobalMethods().makeLoudNoise.call(animal), animal.makeLoudNoise() );	
+	test.equal( animal.getGlobalMethods().makeSound.call(animal), animal.makeSound() );	
+	
+
+});
+
 Tinytest.add('getCurrentTypeStructure()', function ( test ) {
 
 	// Construct a new item for all these constructors

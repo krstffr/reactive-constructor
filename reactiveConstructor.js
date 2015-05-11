@@ -47,30 +47,28 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		return _.pluck( passedConstructor.constructorDefaults().typeStructure, 'type' );
 	};
 
-	// Setup all global methods to the constructor object
-	var setupGlobalMethods = function( defaults ) {
-		
-		// See if there are any default methods passed
-		if (!defaults.globalValues ||
-			!defaults.globalValues.methods)
-			return false;
-		
-		// Attach them to the constructor prototype
-		return _.each(defaults.globalValues.methods, function(method, methodName){
-			passedConstructor.prototype[methodName] = method;
-		});
-
-	};
-
-	setupGlobalMethods( passedConstructor.constructorDefaults() );
-
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
 	// TODO: How to make this more testable?
 	passedConstructor.prototype.setupTypeMethods = function ( reactiveObject ) {
-		_.each(reactiveObject.getCurrentTypeMethods(), function( method, methodName ){
+		var methods = _.assign( reactiveObject.getGlobalMethods(), reactiveObject.getCurrentTypeMethods() );
+		_.each(methods, function( method, methodName ){
 			reactiveObject[ methodName ] = method;
 		});
+	};
+	
+	passedConstructor.prototype.getGlobalMethods = function() {
+		
+		var defaults = passedConstructor.constructorDefaults();
+		
+		// See if there are any default methods passed
+		if (!defaults.globalValues ||
+			!defaults.globalValues.methods)
+			return {};
+
+		// Return the global methods
+		return defaults.globalValues.methods;
+
 	};
 
 	// Method for getting all custom methods of this 
