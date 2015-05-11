@@ -23,14 +23,23 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	// Add the default to the constructor
 	passedConstructor.constructorDefaults = constructorDefaults;
 
+	// Store the constructor in the ReactiveConstructors object.
+	// This is so that we can create new instances of these constructors
+	// later when needed!
+
+	// First: Make sure we're not overwriting an existing constructor
+	if (ReactiveConstructors[ constructorName ])
+		throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + constructorName + ' is already defined!');
+
+	ReactiveConstructors[ constructorName ] = passedConstructor;
+
 	if (Meteor.isServer){
+
 		// Add this method since it's still being called (on server as well)
 		passedConstructor.prototype.initReactiveValues = function() { return true; };
-		// Make sure we're not overwriting an existing constructor, then add it
-		if (ReactiveConstructors[ constructorName ])
-			throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + constructorName + ' is already defined!');
-		ReactiveConstructors[ constructorName ] = passedConstructor;
+
 		return passedConstructor;
+
 	}
 
 	// Method for retrieving all the defined types of a constructor
@@ -230,10 +239,6 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			.compact()
 			.value();
 
-			// console.log(
-			// 	_.pick( dataToCheck, keysToCheck ),
-			// 	_.pick( currentTypeStructure, keysToCheck ));
-
 			check(
 				_.pick( dataToCheck, keysToCheck ),
 				_.pick( currentTypeStructure, keysToCheck )
@@ -309,8 +314,8 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 				// Is it a "plain" object? Then transform it into a non-plain
 				// from the type provided in the typeStructure!
-				if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ value.constructor.constructorName ] )
-					return new ReactiveConstructors[ value.constructor.constructorName ]( value );
+				if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.constructorName ] )
+					return new ReactiveConstructors[ valueType.constructorName ]( value );
 
 				// If the value is a string, and there is a window object with this name,
 				// create a new instance from it!
@@ -489,16 +494,6 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	// Init all plugins on this constructor
 	passedConstructor = initPluginsOnConstructor( passedConstructor );
-
-	// Store the constructor in the ReactiveConstructors object.
-	// This is so that we can create new instances of these constructors
-	// later when needed!
-
-	// First: Make sure we're not overwriting an existing constructor
-	if (ReactiveConstructors[ constructorName ])
-		throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + constructorName + ' is already defined!');
-
-	ReactiveConstructors[ constructorName ] = passedConstructor;
 	
 	return passedConstructor;
 

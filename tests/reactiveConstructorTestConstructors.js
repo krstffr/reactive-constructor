@@ -18,9 +18,16 @@ Person = new ReactiveConstructor('Person', function () {
         children: []
       }
     }, {
+      type: 'ranger',
+      fields: {
+        favouritePet: Animal,
+        animals: [ Animal ]
+      }
+    }, {
       type: 'husband',
       fields: {
-        wife: Person
+        wife: Person,
+        buddies: [ Person ]
       }
     }, {
       type: 'wife',
@@ -78,7 +85,6 @@ Invoice = new ReactiveConstructor('Invoice', function () {
       methods: {
         'items/getTotal': function ( key ) {
           var items = this.getReactiveValue( 'items' );
-          console.log( items, key );
           return _.reduce(items, function( memo, item ){
             if (typeof item[key] === 'function')
               return memo + item[key]();
@@ -168,24 +174,44 @@ Animal = new ReactiveConstructor('Animal', function () {
         numberOfLegs: Number,
         hasBrain: Boolean,
         canMove: Boolean,
-        lifeExpectancyInYears: Number
+        lifeExpectancyInYears: Number,
+        age: Number
       },
       defaultData: {
         hasBrain: true,
         canMove: true,
         lifeExpectancyInYears: 10
+      },
+      methods: {
+        makeSound: function() {
+          return '"grrrrr!" says: ' + this.getType();
+        }
       }
     },
     typeStructure: [{
       type: 'dog',
+      fields: {
+        pals: [ Animal ]
+      },
       defaultData: {
-        hasBrain: true
+        hasBrain: true,
+        age: 1
+      },
+      methods: {
+        howl: function() {
+          return 'AAUUUIIII';
+        },
+        getAgeInDogYears: function() {
+          console.log( this.getReactiveValue('age') );
+          return this.getReactiveValue('age') * 7;
+        }
       }
     }, {
       type: 'crippledCat',
       defaultData: {
         numberOfLegs: 3,
-        lifeExpectancyInYears: 7
+        lifeExpectancyInYears: 18,
+        age: 12
       }
     }, {
       type: 'duck',
