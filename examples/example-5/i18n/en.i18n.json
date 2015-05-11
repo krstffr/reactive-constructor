@@ -1,0 +1,21 @@
+{
+	"headline_setup": "Setup schedule.",
+	"start_date": "Start date",
+	"start_date_button": "Change start date",
+	"weeks_per_row": "Weeks/row",
+	"weeks_per_row_button": "Change weeks/row",
+	"rows": "Rows",
+	"rows_button": "Change rows",
+	"people": "People",
+	"people_button": "Change people",
+	"print": "Print!",
+	"print_button": "Print this schedule!",
+	"schedule_headline": "Cleaning schedule for stairs",
+	"schedule_key_date": "Date",
+	"schedule_key_cleaner": "Responsible cleaner",
+	"schedule_key_done": "Done? Signature and date",
+	"prompt_change_date": "What start date? Examples: 2015-03-25, 25 mars 2015.",
+	"prompt_change_weeks_per_row": "How many weeks per row?",
+	"prompt_change_people": "Who should clean the stairs? (names, comma separated) ",
+	"prompt_change_rows": "How many rows you need?"
+}
