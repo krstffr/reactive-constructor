@@ -133,6 +133,18 @@ Tinytest.add('Various constructors - Init constructors with some params', functi
 
 });
 
+Tinytest.add('Various constructors - instance.constructor.constructorName', function ( test ) {
+
+	var person = new Person();
+	var animal = new Animal();
+	var invoice = new Invoice();
+
+	test.equal(person.constructor.constructorName, 'Person');
+	test.equal(animal.constructor.constructorName, 'Animal');
+	test.equal(invoice.constructor.constructorName, 'Invoice');
+
+});
+
 Tinytest.add('Person - Init persons with references to other Person', function ( test ) {
 
 	var testPersonWithChild = new Person({
