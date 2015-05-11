@@ -3,31 +3,66 @@ var typeKey = 'rcType';
 // Holder for all current constructors
 ReactiveConstructors = {};
 
-ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
+ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	var that = this;
 
 	// Make sure there are passed constructorDefaults
 	if(!constructorDefaults)
-		throw new Meteor.Error('no-constructor-defaults-passed', 'No constructor defaults passed for: ' + passedConstructor.name );
+		throw new Meteor.Error('no-constructor-defaults-passed', 'No constructor defaults passed for: ' + constructorName );
+
+	check( constructorName, String );
+
+	// This is the method which will be returned
+	var passedConstructor = function() {
+		this.initReactiveValues( arguments[0] );
+	};
+
+	passedConstructor.constructorName = constructorName;
 
 	// Add the default to the constructor
 	passedConstructor.constructorDefaults = constructorDefaults;
 
+	// Store the constructor in the ReactiveConstructors object.
+	// This is so that we can create new instances of these constructors
+	// later when needed!
+
+	// First: Make sure we're not overwriting an existing constructor
+	if (ReactiveConstructors[ constructorName ])
+		throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + constructorName + ' is already defined!');
+
+	ReactiveConstructors[ constructorName ] = passedConstructor;
+
 	if (Meteor.isServer){
+
 		// Add this method since it's still being called (on server as well)
 		passedConstructor.prototype.initReactiveValues = function() { return true; };
-		// Make sure we're not overwriting an existing constructor, then add it
-		if (ReactiveConstructors[ passedConstructor.name ])
-			throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + passedConstructor.name + ' is already defined!');
-		ReactiveConstructors[ passedConstructor.name ] = passedConstructor;
+
 		return passedConstructor;
+
 	}
 
 	// Method for retrieving all the defined types of a constructor
 	passedConstructor.getTypeNames = function() {
 		return _.pluck( passedConstructor.constructorDefaults().typeStructure, 'type' );
 	};
+
+	// Setup all global methods to the constructor object
+	var setupGlobalMethods = function( defaults ) {
+		
+		// See if there are any default methods passed
+		if (!defaults.globalValues ||
+			!defaults.globalValues.methods)
+			return false;
+		
+		// Attach them to the constructor prototype
+		return _.each(defaults.globalValues.methods, function(method, methodName){
+			passedConstructor.prototype[methodName] = method;
+		});
+
+	};
+
+	setupGlobalMethods( passedConstructor.constructorDefaults() );
 
 	// Method for adding the methods passed from the passed typeStructure object
 	// to the type object.
@@ -271,16 +306,16 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 						// Is it a "plain" object? Then transform it into a non-plain
 						// from the type provided in the typeStructure!
 						// Else just return the current array value
-						if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[ 0 ].name ] )
-							return new ReactiveConstructors[ valueType[ 0 ].name ]( arrayVal );
+						if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[0].constructorName ] )
+							return new ReactiveConstructors[ valueType[0].constructorName ]( arrayVal );
 						return arrayVal;
 					});
 				}
 
 				// Is it a "plain" object? Then transform it into a non-plain
 				// from the type provided in the typeStructure!
-				if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.name ] )
-					return new ReactiveConstructors[ valueType.name ]( value );
+				if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.constructorName ] )
+					return new ReactiveConstructors[ valueType.constructorName ]( value );
 
 				// If the value is a string, and there is a window object with this name,
 				// create a new instance from it!
@@ -459,16 +494,6 @@ ReactiveConstructor = function( passedConstructor, constructorDefaults ) {
 
 	// Init all plugins on this constructor
 	passedConstructor = initPluginsOnConstructor( passedConstructor );
-
-	// Store the constructor in the ReactiveConstructors object.
-	// This is so that we can create new instances of these constructors
-	// later when needed!
-
-	// First: Make sure we're not overwriting an existing constructor
-	if (ReactiveConstructors[ passedConstructor.name ])
-		throw new Meteor.Error('reactive-constructor-already-defined', 'The reactive constructor' + passedConstructor.name + ' is already defined!');
-
-	ReactiveConstructors[ passedConstructor.name ] = passedConstructor;
 	
 	return passedConstructor;
 

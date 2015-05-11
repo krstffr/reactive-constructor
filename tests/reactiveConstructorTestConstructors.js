@@ -1,9 +1,5 @@
 // Create a reactive constructor which can be used in tests.
-Person = new ReactiveConstructor(function Person() {
-
-  this.initReactiveValues( arguments[0] );
-
-}, function () {
+Person = new ReactiveConstructor('Person', function () {
   return {
     typeStructure: [{
       type: 'worker',
@@ -22,9 +18,16 @@ Person = new ReactiveConstructor(function Person() {
         children: []
       }
     }, {
+      type: 'ranger',
+      fields: {
+        favouritePet: Animal,
+        animals: [ Animal ]
+      }
+    }, {
       type: 'husband',
       fields: {
-        wife: Person
+        wife: Person,
+        buddies: [ Person ]
       }
     }, {
       type: 'wife',
@@ -57,13 +60,8 @@ Person = new ReactiveConstructor(function Person() {
 });
 
 
-
 // A generic "Client"
-Client = new ReactiveConstructor( function Client() {
-
-  this.initReactiveValues( arguments[0] );
-
-}, function () {
+Client = new ReactiveConstructor('Client', function () {
   return {
     typeStructure: [{
       type: 'client',
@@ -76,42 +74,36 @@ Client = new ReactiveConstructor( function Client() {
         clientName: 'new client'
       }
     }]
-  }});
+  };
+});
 
 
 // A generic "Invoice"
-Invoice = new ReactiveConstructor(function Invoice () {
-
-  var that = this;
-
-  that.items = {};
-
-  that.items.getTotal = function ( key ) {
-    var items = that.getReactiveValue( 'items' );
-    return _.reduce(items, function( memo, item ){
-      if (typeof item[key] === 'function')
-        return memo + item[key]();
-      return memo + item[key];
-    }, 0);
-  };
-
-  that.items.getTaxPercentage = function () {
-    return (
-      that.items.getTotal('tax') /
-      that.items.getTotal('endPrice') * 100 ||
-      0
-      ).toFixed(1);
-  };
-
-  that.saveInvoice = function () {
-    var dataToSave = that.getDataAsObject();
-    return Invoices.upsert( { _id: dataToSave._id }, dataToSave );
-  };
-
-  that.initReactiveValues( arguments[0] );
-
-}, function () {
+Invoice = new ReactiveConstructor('Invoice', function () {
   return {
+    globalValues: {
+      methods: {
+        'items/getTotal': function ( key ) {
+          var items = this.getReactiveValue( 'items' );
+          return _.reduce(items, function( memo, item ){
+            if (typeof item[key] === 'function')
+              return memo + item[key]();
+            return memo + item[key];
+          }, 0);
+        },
+        'items/getTaxPercentage': function () {
+          return (
+            this['items/getTotal']('tax') /
+            this['items/getTotal']('endPrice') * 100 ||
+            0
+            ).toFixed(1);
+        },
+        saveInvoice: function () {
+          var dataToSave = this.getDataAsObject();
+          return Invoices.upsert( { _id: dataToSave._id }, dataToSave );
+        }
+      }
+    },
     typeStructure: [{
       type: 'invoice',
       fields: {
@@ -136,29 +128,22 @@ Invoice = new ReactiveConstructor(function Invoice () {
 });
 
 
-
-
 // A generic "InvoiceListItem"
-InvoiceListItem = new ReactiveConstructor(function InvoiceListItem () {
-
-  var that = this;
-
-  that.endPrice = function () {
-    return that.getReactiveValue('units') * that.getReactiveValue('unitPrice');
-  };
-
-  that.priceAfterTax = function () {
-    return that.endPrice() * (( that.getReactiveValue('tax') / 100)+1);
-  };
-
-  that.tax = function () {
-    return that.priceAfterTax() - that.endPrice();
-  };
-
-  that.initReactiveValues( arguments[0] );
-  
-}, function () {
+InvoiceListItem = new ReactiveConstructor('InvoiceListItem', function () {
   return {
+    globalValues: {
+      methods: {
+        endPrice: function () {
+          return this.getReactiveValue('units') * this.getReactiveValue('unitPrice');
+        },
+        priceAfterTax: function () {
+          return this.endPrice() * (( this.getReactiveValue('tax') / 100)+1);
+        },
+        tax: function () {
+          return this.priceAfterTax() - this.endPrice();
+        }
+      }
+    },
     typeStructure: [{
       type: 'invoiceListItem',
       fields: {
@@ -182,40 +167,51 @@ InvoiceListItem = new ReactiveConstructor(function InvoiceListItem () {
 });
 
 
-
-
-
-
-
-Animal = new ReactiveConstructor(function Animal () {
-
-  this.initReactiveValues( arguments[0] );
-
-}, function () {
+Animal = new ReactiveConstructor('Animal', function () {
   return {
     globalValues: {
       fields: {
         numberOfLegs: Number,
         hasBrain: Boolean,
         canMove: Boolean,
-        lifeExpectancyInYears: Number
+        lifeExpectancyInYears: Number,
+        age: Number
       },
       defaultData: {
         hasBrain: true,
         canMove: true,
         lifeExpectancyInYears: 10
+      },
+      methods: {
+        makeSound: function() {
+          return '"grrrrr!" says: ' + this.getType();
+        }
       }
     },
     typeStructure: [{
       type: 'dog',
+      fields: {
+        pals: [ Animal ]
+      },
       defaultData: {
-        hasBrain: true
+        hasBrain: true,
+        age: 1
+      },
+      methods: {
+        howl: function() {
+          return 'AAUUUIIII';
+        },
+        getAgeInDogYears: function() {
+          console.log( this.getReactiveValue('age') );
+          return this.getReactiveValue('age') * 7;
+        }
       }
     }, {
       type: 'crippledCat',
       defaultData: {
         numberOfLegs: 3,
-        lifeExpectancyInYears: 7
+        lifeExpectancyInYears: 18,
+        age: 12
       }
     }, {
       type: 'duck',
