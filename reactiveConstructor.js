@@ -152,6 +152,20 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		return this.reactiveData.get()[key];
 	};
 
+	// Method for getting the constructor for the passed key
+	passedConstructor.prototype.getConstructorOfKey = function( key ) {
+		var constructor = this.getCurrentTypeStructure()[ key ];
+		if ( Match.test( constructor, Array ) )
+			return constructor[0];
+		return constructor;
+	};
+
+	// Method for getting the name of the constructor for the passed key
+	passedConstructor.prototype.getConstructorNameOfKey = function( key ) {
+		var constructor = this.getConstructorOfKey( key );
+		return constructor.constructorName || constructor.name;
+	};
+
 	// Check the type of a passed value compared to what has been defined
 	// by the user.
 	passedConstructor.prototype.checkReactiveValueType = function ( key, passedValue ) {

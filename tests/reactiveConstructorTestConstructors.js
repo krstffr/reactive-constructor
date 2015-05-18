@@ -194,18 +194,22 @@ Animal = new ReactiveConstructor('Animal', function () {
     typeStructure: [{
       type: 'dog',
       fields: {
-        pals: [ Animal ]
+        pals: [ Animal ],
+        name: String,
+        owner: Person,
+        bestFriend: Animal,
+        petDoctorInvoices: [ Invoice ]
       },
       defaultData: {
         hasBrain: true,
-        age: 1
+        age: 1,
+        name: 'Rex'
       },
       methods: {
         howl: function() {
           return 'AAUUUIIII';
         },
         getAgeInDogYears: function() {
-          console.log( this.getReactiveValue('age') );
           return this.getReactiveValue('age') * 7;
         }
       }

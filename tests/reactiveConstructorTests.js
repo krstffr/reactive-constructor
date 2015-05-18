@@ -755,7 +755,69 @@ Tinytest.add('getTypeNames()', function( test ) {
 
 });
 
+Tinytest.add('getConstructorOfKey()', function(test) {
 
+	var dog = new Animal({ rcType: 'dog' });
+
+	// Should work for basic data types such as Booleans/String/Numbers etc.
+	test.equal( dog.getConstructorOfKey('canMove'), Boolean );
+	test.equal( dog.getConstructorOfKey('age'), Number );
+	test.equal( dog.getConstructorOfKey('name'), String );
+
+	// Should also be able to return other reactive constructors
+	test.equal( dog.getConstructorOfKey('bestFriend'), Animal );
+	test.equal( dog.getConstructorOfKey('owner'), Person );
+
+	// Should also be able to get value from arrays
+	test.equal( dog.getConstructorOfKey('pals'), Animal );
+	test.equal( dog.getConstructorOfKey('petDoctorInvoices'), Invoice );
+
+	// Let's do some more tests
+	var testPerson = new Person({ rcType: 'worker' });
+	var testClient = new Client();
+
+	test.equal( testPerson.getConstructorOfKey('name'), String );
+	test.equal( testPerson.getConstructorOfKey('birthDate'), Date );
+	test.equal( testPerson.getConstructorOfKey('age'), Number );
+	test.equal( testPerson.getConstructorOfKey('children'), Person );
+
+	test.equal( testClient.getConstructorOfKey('clientName'), String );
+	test.equal( testClient.getConstructorOfKey('adressStreet'), String );
+	test.equal( testClient.getConstructorOfKey('staff'), Person );
+
+});
+
+Tinytest.add('getConstructorNameOfKey()', function(test) {
+
+	var dog = new Animal({ rcType: 'dog' });
+
+	// Should work for basic data types such as Booleans/String/Numbers etc.
+	test.equal( dog.getConstructorNameOfKey('canMove'), 'Boolean' );
+	test.equal( dog.getConstructorNameOfKey('age'), 'Number' );
+	test.equal( dog.getConstructorNameOfKey('name'), 'String' );
+
+	// Should also be able to return other reactive constructors
+	test.equal( dog.getConstructorNameOfKey('bestFriend'), 'Animal' );
+	test.equal( dog.getConstructorNameOfKey('owner'), 'Person' );
+
+	// Should also be able to get value from arrays
+	test.equal( dog.getConstructorNameOfKey('pals'), 'Animal' );
+	test.equal( dog.getConstructorNameOfKey('petDoctorInvoices'), 'Invoice' );
+
+	// Let's do some more tests
+	var testPerson = new Person({ rcType: 'worker' });
+	var testClient = new Client();
+
+	test.equal( testPerson.getConstructorNameOfKey('name'), 'String' );
+	test.equal( testPerson.getConstructorNameOfKey('birthDate'), 'Date' );
+	test.equal( testPerson.getConstructorNameOfKey('age'), 'Number' );
+	test.equal( testPerson.getConstructorNameOfKey('children'), 'Person' );
+
+	test.equal( testClient.getConstructorNameOfKey('clientName'), 'String' );
+	test.equal( testClient.getConstructorNameOfKey('adressStreet'), 'String' );
+	test.equal( testClient.getConstructorNameOfKey('staff'), 'Person' );
+
+});
 
 
 
