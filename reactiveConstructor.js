@@ -60,6 +60,8 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	passedConstructor.prototype.getGlobalMethods = function() {
 		
 		var defaults = passedConstructor.constructorDefaults();
+
+		check( defaults, Object );
 		
 		// See if there are any default methods passed
 		if (!defaults.globalValues ||
@@ -85,16 +87,21 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		
 		// Get the fields specific for this type
 		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: instance.getType() }).fields || {};
+		check( typeFields, Object );
 
 		// If there are no global fields, just return the type specific fields
 		if (passedConstructor.constructorDefaults().globalValues && passedConstructor.constructorDefaults().globalValues.fields)
 			globalFields = passedConstructor.constructorDefaults().globalValues.fields;
+
+		check( globalFields, Object );
 
 		// A plugin might have added some fields, add those as well to the mix
 		var pluginTypeFields = _.reduce(ReactiveConstructorPlugins, function( memo, plugin ){
 			if (plugin.options.pluginTypeStructure)
 				return _.assign( memo, plugin.options.pluginTypeStructure( instance ) );
 		}, {});
+
+		check( pluginTypeFields, Object );
 
 		// Else combine the fields and return all of them
 		return _.assign( globalFields, typeFields, pluginTypeFields );
@@ -376,9 +383,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			if ( Match.test( val, Array ) )
 				return [];
 
-			// If it's not an array, and not a String/Number or Boolean,
-			// don't return anything.
-			// BUG IN <IE9, .name does not work!
+			// If it is not a String, Number or Boolean, return nothing.
 			if (val.name.search(/String|Number|Boolean/g) < 0)
 				return ;
 
