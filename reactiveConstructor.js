@@ -176,9 +176,12 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	// Check the type of a passed value compared to what has been defined
 	// by the user.
 	passedConstructor.prototype.checkReactiveValueType = function ( key, passedValue ) {
-	
+
+		var instance = this;
+
 		var ordinaryMethod = function( key, passedValue ) {
-			check( passedValue, this.getCurrentTypeStructure()[ key ] );
+			check( key, String );
+			check( passedValue, instance.getCurrentTypeStructure()[ key ] );
 			return true;
 		};
 
