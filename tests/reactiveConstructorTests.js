@@ -133,6 +133,29 @@ Tinytest.add('Various constructors - Init constructors with some params', functi
 
 });
 
+Tinytest.add('Various constructors - Init constructors with params + parms which are not part of defined structure', function ( test ) {
+
+	var setValues = {
+		invoiceName: 'A name set from here',
+		currency: 'SEK',
+		superCool: true,
+		items: [
+		new InvoiceListItem(),
+		new InvoiceListItem({
+			units: 10,
+			unitPrice: 500
+		})
+		]
+	};
+
+	setValues.additionalField = true;
+	setValues.additionalFieldNumber2 = 'A string';
+	setValues.additionalFieldNumber3 = { subVal: 'string', subVal2: 123 };
+	
+	var testInvoice = new Invoice( setValues );
+
+});
+
 Tinytest.add('Various constructors - instance.constructor.constructorName', function ( test ) {
 
 	var person = new Person();
@@ -496,13 +519,13 @@ Tinytest.add('checkReactiveValues()', function( test ) {
 	test.isTrue( testInvoice.checkReactiveValues() );
 
 	test.throws(function() {
-		testPerson.checkReactiveValues({ wrong: 'structure', not: 'correct' });
+		testPerson.checkReactiveValues({ age: 'wrong type', name: 7355380 });
 	});
 	test.throws(function() {
-		testAnimal.checkReactiveValues({ wrong: true, correct: 0 });
+		testAnimal.checkReactiveValues({ numberOfLegs: 'four', hasBrain: function() {} });
 	});
 	test.throws(function() {
-		testInvoice.checkReactiveValues({ wrong: ['yes'] });
+		testInvoice.checkReactiveValues({ items: ['yes'] });
 	});
 
 });

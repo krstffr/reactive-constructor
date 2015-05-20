@@ -103,9 +103,24 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 		check( pluginTypeFields, Object );
 
-		// Else combine the fields and return all of them
-		return _.assign( globalFields, typeFields, pluginTypeFields );
+		var validPluginTypeFields = instance.getValidTypeStructureFieldsFromPlugins();
 
+		check( pluginTypeFields, Object );
+
+		// Else combine the fields and return all of them
+		return _.assign( globalFields, typeFields, pluginTypeFields, validPluginTypeFields );
+
+	};
+
+	// Method for getting possible plugin extra fields
+	// For example: if a plugin adds a special "pluginValue" field to SOME instances (not all),
+	// then this method will return this value.
+	passedConstructor.prototype.getValidTypeStructureFieldsFromPlugins = function() {
+		var instance = this;
+		return _.reduce(ReactiveConstructorPlugins, function( memo, plugin ){
+			if (plugin.options.validTypeStructureFields)
+				return _.assign( memo, plugin.options.validTypeStructureFields( instance ) );
+		}, {});
 	};
 
 	// Method for removing a value of a reactive item.
@@ -245,9 +260,13 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			// Person, this field must be able to be empty.
 			// So here we get all the keys which have a value, which
 			// we later use to typecheck.
+
+			// Also: only check against the currentTypeStructure keys,
+			// meaning that objects can also have additional fields which
+			// have been set elsewhere. (For example: in a DB.)
 			var keysToCheck  = _.chain( dataToCheck )
 			.map( function( value, key ){
-				if (value === undefined)
+				if (value === undefined || !currentTypeStructure[key])
 					return false;
 				return key;
 			})
@@ -464,6 +483,12 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		
 	};
 
+	// Method for stripping any fields from the initData object
+	// which are not part of the type structure
+	passedConstructor.prototype.removeAdditionalDataFields = function( data ) {
+		return _.pick( data, _.keys( this.getCurrentTypeStructure() ) );
+	};
+
 
 	// Method for initiating the ReactiveConstructor.
 	passedConstructor.prototype.initReactiveValues = function ( initData ) {	
@@ -477,6 +502,9 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			// TODO: This needs to be handled in a cleaner way probably!
 			if (initData && initData[ typeKey ])
 				delete initData[ typeKey ];
+
+			// Remove any fields which are not part of the type structure
+			initData = instance.removeAdditionalDataFields( initData );
 
 			// Setup the init data, setting default data and bare data
 			// (Strings should be set to "" and numbers to 0 if no default or init value is set)
