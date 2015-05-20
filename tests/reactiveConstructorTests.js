@@ -233,6 +233,16 @@ Tinytest.add('Person - Init person with "child" type', function ( test ) {
 
 });
 
+Tinytest.add('Person - Init person with Boolean field set to false', function ( test ) {
+
+	var wife = new Person({ rcType: 'wife', happy: false });
+	var happyWife = new Person({ rcType: 'wife', happy: true });
+
+	test.isFalse( wife.getReactiveValue('happy') );
+	test.isTrue( happyWife.getReactiveValue('happy') );
+
+});
+
 Tinytest.add('Invoice / invoiceListItem - Throw errors when using wrong types', function ( test ) {
 	
 	test.throws(function () {

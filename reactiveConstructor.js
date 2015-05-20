@@ -219,15 +219,10 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 				return plugin[ methodName ].apply( this, args );
 			});
 
-			// Are there any non boolean results? If so: combine those returned objects
-			// and return that new combined object!
-			var nonBooleanPluginResults = _.reject(pluginResults, function( result ){
-				return Match.test( result, Boolean );
-			});
-
 			// TODO: WHICH ONE TO CHOOSE IF THERE ARE SEVERAL
-			if (nonBooleanPluginResults.length > 0)
-				return nonBooleanPluginResults[0];
+			if (pluginResults.length > 0)
+				return pluginResults[0];
+
 			return true;
 
 		}
@@ -316,7 +311,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 				var valueType = instance.getCurrentTypeStructure()[key];
 
 				// Check for normal types and just return those
-				if ( valueType && valueType.name && valueType.name.search(/String|Number/g) > -1)
+				if ( valueType && valueType.name && valueType.name.search(/String|Number|Boolean/g) > -1)
 					return value;
 
 				// Is it an array?
