@@ -148,7 +148,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 		var instance = this;
 
-		var ordinaryMethod = function( key, value ) {
+		var ordinaryMethod = function( instance, key, value ) {
 
 			// Make sure the passed value has the correct type
 			if (!instance.checkReactiveValueType( key, value ))
@@ -172,7 +172,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 		};
 
-		var args = [ key, value, ordinaryMethod ];
+		var args = [ instance, key, value, ordinaryMethod ];
 
 		return instance.getPluginOverrides('setReactiveValue', args );
 

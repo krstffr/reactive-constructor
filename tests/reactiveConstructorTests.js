@@ -875,9 +875,9 @@ Tinytest.add('Plugins - Override setReactiveValue', function(test) {
 
 	var overrideValue = ' overridden!';
 
-	TestPlugin.setReactiveValue = function( key, value, ordMethod ) {
+	TestPlugin.setReactiveValue = function( instance, key, value, ordMethod ) {
 		value += overrideValue;
-		return ordMethod( key, value );
+		return ordMethod( instance, key, value );
 	};
 
 	var testPerson = new Person();
