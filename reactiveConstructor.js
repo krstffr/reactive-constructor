@@ -99,6 +99,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		var pluginTypeFields = _.reduce(ReactiveConstructorPlugins, function( memo, plugin ){
 			if (plugin.options.pluginTypeStructure)
 				return _.assign( memo, plugin.options.pluginTypeStructure( instance ) );
+			return memo;
 		}, {});
 
 		check( pluginTypeFields, Object );
@@ -145,25 +146,35 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	// Method for setting the value of a reactive item.
 	passedConstructor.prototype.setReactiveValue = function ( key, value ) {
 
-		// Make sure the passed value has the correct type
-		if (!this.checkReactiveValueType( key, value ))
-			throw new Meteor.Error('reactiveData-wrong-type', 'Error');
-		
-		// Get all the data
-		var reactiveData = this.reactiveData.get();
+		var instance = this;
 
-		// Set the key field of the data to the new value
-		reactiveData[ key ] = value;
+		var ordinaryMethod = function( key, value ) {
 
-		// Check the entire stucture of the data about to be set
-		if ( !this.checkReactiveValues( reactiveData ) )
-			throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
-		
-		// Set the reactive var to the new data
-		this.reactiveData.set( reactiveData );
+			// Make sure the passed value has the correct type
+			if (!instance.checkReactiveValueType( key, value ))
+				throw new Meteor.Error('reactiveData-wrong-type', 'Error');
+			
+			// Get all the data
+			var reactiveData = instance.reactiveData.get();
 
-		// return the newly set value!
-		return value;
+			// Set the key field of the data to the new value
+			reactiveData[ key ] = value;
+
+			// Check the entire stucture of the data about to be set
+			if ( !instance.checkReactiveValues( reactiveData ) )
+				throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
+			
+			// Set the reactive var to the new data
+			instance.reactiveData.set( reactiveData );
+
+			// return the newly set value!
+			return value;
+
+		};
+
+		var args = [ key, value, ordinaryMethod ];
+
+		return instance.getPluginOverrides('setReactiveValue', args );
 
 	};
 
