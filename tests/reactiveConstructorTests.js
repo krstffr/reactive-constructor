@@ -852,7 +852,43 @@ Tinytest.add('getConstructorNameOfKey()', function(test) {
 
 });
 
+var TestPlugin;
 
+Tinytest.add('Plugins - Init new plugin', function(test) {
+
+	// Passing non functions
+	test.throws(function() {
+		TestPlugin = new ReactiveConstructorPlugin({
+			initConstructor: 'Should be a function, not a string!',
+			initInstance: { throw: 'error', equals: true }
+		});
+	});
+
+	TestPlugin = new ReactiveConstructorPlugin({
+		initConstructor: function( passedConstructor ) { return passedConstructor; },
+		initInstance: function( instance ) { return instance; },
+	});
+
+});
+
+Tinytest.add('Plugins - Override setReactiveValue', function(test) {
+
+	var overrideValue = ' overridden!';
+
+	TestPlugin.setReactiveValue = function( key, value, ordMethod ) {
+		value += overrideValue;
+		return ordMethod( key, value );
+	};
+
+	var testPerson = new Person();
+
+	var newName = 'New name';
+
+	testPerson.setReactiveValue('name', newName);
+
+	test.equal( testPerson.getReactiveValue('name'), newName+overrideValue );
+
+});
 
 
 
