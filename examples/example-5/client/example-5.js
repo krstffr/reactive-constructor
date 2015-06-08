@@ -30,6 +30,8 @@ Schedule = new ReactiveConstructor('Schedule', function() {
 
           var people = that.getReactiveValue('people').split(',');
 
+          var showWeeksOrMonths = that.getReactiveValue('showWeeksOrMonths');
+
           // Create an array with X array items using underscores _range
           // method from the rective 'rows' value.
           // Then iterate over each item and return a start/end date from
@@ -38,21 +40,35 @@ Schedule = new ReactiveConstructor('Schedule', function() {
           return _.chain( _.range( this.getReactiveValue('rows') ) )
           .map(function ( iteratorNum ) {
 
-            var personToClean = people[ iteratorNum % people.length ];
-            
-            // Get the current weeks to add to the start date and end dates
-            var weeksToAdd = iteratorNum * that.getReactiveValue('weeksPerRow');
-            
-            // Add the weeks to the start date to generate the startDate
-            var startDate = moment( that.getReactiveValue('startDate') )
-            .add( weeksToAdd, 'weeks')._d;
+            var returnObject = {
+              personToClean: people[ iteratorNum % people.length ]
+            };
 
-            // Add another weeksPerRow - 1 day to get the end date.
-            var endDate = moment( startDate )
-            .add( that.getReactiveValue('weeksPerRow'), 'weeks')
-            .subtract(1, 'days')._d;
+            if (showWeeksOrMonths === 'weeks') {
+              
+              // Get the current weeks to add to the start date and end dates
+              var weeksToAdd = iteratorNum * that.getReactiveValue('weeksPerRow');
+              
+              // Add the weeks to the start date to generate the startDate
+              returnObject.startDate = moment( that.getReactiveValue('startDate') )
+              .add( weeksToAdd, 'weeks')._d;
 
-            return { startDate: startDate, endDate: endDate, personToClean: personToClean };
+              // Add another weeksPerRow - 1 day to get the end date.
+              returnObject.endDate = moment( returnObject.startDate )
+              .add( that.getReactiveValue('weeksPerRow'), 'weeks')
+              .subtract(1, 'days')._d;
+
+            }
+
+            if (showWeeksOrMonths === 'months') {
+
+              returnObject.startDate = moment( that.getReactiveValue('startDate') )
+              .add( iteratorNum, 'months')
+              .startOf('month')._d;
+
+            }
+
+            return returnObject;
 
           })
           .value();
@@ -67,12 +83,14 @@ Schedule = new ReactiveConstructor('Schedule', function() {
         rows: Number,
         weeksPerRow: Number,
         people: String,
+        showWeeksOrMonths: String,
         weirdNestedSchedule: Schedule
       },
       defaultData: {
         startDate: getFirstDayOfWeekFromDate( new Date() ),
         rows: 25,
         weeksPerRow: 2,
+        showWeeksOrMonths: 'weeks',
         people: 'Stina & Kristoffer, William, Marie'
       }
     }]
@@ -84,11 +102,17 @@ schedule = new Schedule();
 
 // Method for formatting date the way we want to in the template.
 formatDate = function ( date ) {
-  return moment( date ).format('D MMMM YYYY');
+  if (schedule.getReactiveValue('showWeeksOrMonths') === 'weeks')
+    return moment( date ).format('D MMMM YYYY');
+  var dateString = moment( date ).format('MMMM YYYY');
+  return dateString.charAt(0).toUpperCase() + dateString.slice(1);
 };
 
 // Some template helpers
 Template.schedule.helpers({
+  showWeeks: function() {
+    return schedule.getReactiveValue('showWeeksOrMonths') === 'weeks';
+  },
   schedule: function () {
     return schedule;
   },
@@ -104,6 +128,12 @@ Template.schedule.helpers({
 
 // Some template events
 Template.schedule.events({
+  'click .set-display-to-weeks': function() {
+    return this.setReactiveValue('showWeeksOrMonths', 'weeks');
+  },
+  'click .set-display-to-months': function() {
+    return this.setReactiveValue('showWeeksOrMonths', 'months');
+  },
   'click .set-start-date': function () {
     var userInput = prompt( TAPi18n.__('prompt_change_date') );
     if (!userInput)

@@ -1,4 +1,6 @@
 {
+	"show_weeks": "Show weeks",
+	"show_months"	: "Show months",
 	"headline_setup": "Setup schedule.",
 	"start_date": "Start date",
 	"start_date_button": "Change start date",
