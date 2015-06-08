@@ -49,7 +49,7 @@ Schedule = new ReactiveConstructor('Schedule', function() {
 
             // Add another weeksPerRow - 1 day to get the end date.
             var endDate = moment( startDate )
-            .add( weeksToAdd + that.getReactiveValue('weeksPerRow'), 'weeks')
+            .add( that.getReactiveValue('weeksPerRow'), 'weeks')
             .subtract(1, 'days')._d;
 
             return { startDate: startDate, endDate: endDate, personToClean: personToClean };
