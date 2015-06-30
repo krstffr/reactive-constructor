@@ -3,11 +3,11 @@ Tinytest.add('exported objects', function ( test ) {
 	test.equal( typeof ReactiveConstructors, 'object' );
 	test.equal( typeof ReactiveConstructor, 'function' );
 	test.equal( typeof ReactiveConstructorPlugin, 'function' );
-	
+
 });
 
 Tinytest.add('Person - Init constructors without params', function ( test ) {
-	
+
 	var defaultData = Person.constructorDefaults().typeStructure[0].defaultData;
 	var defaultDataKeys = _( defaultData ).keys();
 	var testPerson = new Person();
@@ -26,7 +26,7 @@ Tinytest.add('Person - Init constructors without params', function ( test ) {
 
 
 Tinytest.add('Invoice - Init constructors without params', function ( test ) {
-	
+
 	var defaultData = Invoice.constructorDefaults().typeStructure[0].defaultData;
 	var defaultDataKeys = _( defaultData ).keys();
 	var testInvoice = new Invoice();
@@ -42,7 +42,7 @@ Tinytest.add('Invoice - Init constructors without params', function ( test ) {
 
 
 Tinytest.add('Various constructors - Init constructors with some params', function ( test ) {
-	
+
 	var setValues = {
 		invoiceName: 'A name set from here',
 		currency: 'SEK',
@@ -126,7 +126,7 @@ Tinytest.add('Various constructors - Init constructors with some params', functi
 	test.equal( animals[1].getReactiveValue('hasBrain'), false );
 	test.equal( animals[1].getReactiveValue('pals')[0].getReactiveValue('hasBrain'), true );
 
-	test.equal( fav.getReactiveValue('hasBrain'), false );	
+	test.equal( fav.getReactiveValue('hasBrain'), false );
 	test.equal( favPals[0].getReactiveValue('hasBrain'), true );
 	test.equal( secondFavPalsPal[0].getReactiveValue('lifeExpectancyInYears'), 100 );
 
@@ -151,7 +151,7 @@ Tinytest.add('Various constructors - Init constructors with params + parms which
 	setValues.additionalField = true;
 	setValues.additionalFieldNumber2 = 'A string';
 	setValues.additionalFieldNumber3 = { subVal: 'string', subVal2: 123 };
-	
+
 	var testInvoice = new Invoice( setValues );
 
 });
@@ -248,7 +248,7 @@ Tinytest.add('Person - Init persons with references to other Person, plain objec
 });
 
 Tinytest.add('Person - Init person with "child" type', function ( test ) {
-	
+
 	var testChild = new Person({ rcType: 'child' });
 
 	test.equal( testChild.getType(), 'child' );
@@ -267,11 +267,11 @@ Tinytest.add('Person - Init person with Boolean field set to false', function ( 
 });
 
 Tinytest.add('Invoice / invoiceListItem - Throw errors when using wrong types', function ( test ) {
-	
+
 	test.throws(function () {
 		new Invoice({ currency: 1.23 });
 	});
-	
+
 	test.throws(function () {
 		new Invoice({ invoiceName: function() {} });
 	});
@@ -308,7 +308,7 @@ Tinytest.add('Invoice / invoiceListItem - Throw errors when using wrong types',
 
 
 Tinytest.add('Invoice - Test some methods', function ( test ) {
-	
+
 	var testInvoice = new Invoice();
 
 	// Test both methods for their deafult values
@@ -348,11 +348,52 @@ Tinytest.add('Animal - Test some methods', function( test ) {
 
 });
 
+Tinytest.add('setReactiveValueWithTypecasting()', function( test ) {
+
+	var testPerson = new Person({ rcType: 'worker', age: 50, name: 'Josef' });
+
+	test.equal( testPerson.getReactiveValue('age'), 50 );
+	test.equal( testPerson.getReactiveValue('name'), 'Josef' );
+
+	test.throws(function(){
+		testPerson.setReactiveValue('age', '55');
+	});
+
+	test.throws(function(){
+		testPerson.setReactiveValue('birthDate', '1971 january 1');
+	});
+
+	test.throws(function(){
+		testPerson.setReactiveValue('happy', 'true');
+	});
+
+	test.throws(function(){
+		testPerson.setReactiveValue('name', 123456 );
+	});
+
+	testPerson.setReactiveValueWithTypecasting('age', '55' );
+
+	test.equal( testPerson.getReactiveValue('age'), 55 );
+
+	testPerson.setReactiveValueWithTypecasting('birthDate', '1971 january 1' );
+
+	test.equal( testPerson.getReactiveValue('birthDate').valueOf(), new Date('1971 january 1').valueOf() );
+
+	testPerson.setReactiveValueWithTypecasting('happy', 'true' );
+
+	test.equal( testPerson.getReactiveValue('happy'), true );
+
+	testPerson.setReactiveValueWithTypecasting('name', 123456 );
+
+	test.equal( testPerson.getReactiveValue('name'), '123456' );
+
+});
+
 Tinytest.add('getCurrentTypeMethods()', function ( test ) {
 
 	var methodsDefinedInConstructor = _( Person.constructorDefaults().typeStructure )
 	.findWhere({ type: 'child'} ).methods;
-	
+
 	var child = new Person({});
 
 	var methods = child.getCurrentTypeMethods();
@@ -376,9 +417,9 @@ Tinytest.add('getGlobalMethods()', function( test ) {
 	test.isTrue( Match.test( animal.getGlobalMethods().makeSound, Function ) );
 	test.isTrue( Match.test( animal.getGlobalMethods().makeLoudNoise, Function ) );
 
-	test.equal( animal.getGlobalMethods().makeLoudNoise.call(animal), animal.makeLoudNoise() );	
-	test.equal( animal.getGlobalMethods().makeSound.call(animal), animal.makeSound() );	
-	
+	test.equal( animal.getGlobalMethods().makeLoudNoise.call(animal), animal.makeLoudNoise() );
+	test.equal( animal.getGlobalMethods().makeSound.call(animal), animal.makeSound() );
+
 
 });
 
@@ -404,7 +445,7 @@ Tinytest.add('getCurrentTypeStructure()', function ( test ) {
 });
 
 Tinytest.add('setReactiveValue()', function ( test ) {
-	
+
 	var testInvoice = new Invoice();
 	var resultFromSetting;
 
@@ -438,7 +479,7 @@ Tinytest.add('setReactiveValue()', function ( test ) {
 });
 
 Tinytest.add('setReactiveValue() - wrong type should throw errors', function ( test ) {
-	
+
 	var testInvoice = new Invoice();
 
 	var wrongValueTypes = {
@@ -472,7 +513,7 @@ Tinytest.add('getReactiveValue()', function ( test ) {
 	_.each(initValues, function( value, key ) {
 		test.equal( testInvoice.getReactiveValue( key ), value );
 	});
-	
+
 });
 
 Tinytest.add('unsetReactiveValue()', function( test ) {
@@ -509,7 +550,7 @@ Tinytest.add('unsetReactiveValue()', function( test ) {
 
 
 Tinytest.add('checkReactiveValues()', function( test ) {
-	
+
 	var testPerson = new Person();
 	var testAnimal = new Animal();
 	var testInvoice = new Invoice();
@@ -532,7 +573,7 @@ Tinytest.add('checkReactiveValues()', function( test ) {
 
 
 Tinytest.add('checkReactiveValueType()', function ( test ) {
-	
+
 	var testPerson = new Person();
 
 	var checkValues = {
@@ -564,7 +605,7 @@ Tinytest.add('checkReactiveValueType()', function ( test ) {
 });
 
 Tinytest.add('checkReactiveValueType() - wrong type should throw errors', function ( test ) {
-	
+
 	var wrongValueTypes = {
 		name: 50,
 		title: function() {},
@@ -612,7 +653,7 @@ Tinytest.add('getDataAsObject()', function ( test ) {
 	});
 
 	var childAge = 50;
-	
+
 	var testPerson = new Person({
 		children: [ new Person({
 			age: childAge
@@ -666,11 +707,11 @@ Tinytest.add('prepareDataToCorrectTypes()', function ( test ) {
 	// shoule now be an actual instance of the InvoiceListItem constructor
 	test.instanceOf( testInvoice.getReactiveValue('items')[0], InvoiceListItem );
 	test.equal( testInvoice.getReactiveValue('items')[0].getReactiveValue('units'), initData.items[0].units );
-	
+
 });
 
 Tinytest.add('getDefaultValues()', function ( test ) {
-	
+
 	var testPerson = new Person();
 
 	test.equal( testPerson.getDefaultValues().toString(), Person.constructorDefaults().typeStructure[0].defaultData.toString() );
@@ -678,7 +719,7 @@ Tinytest.add('getDefaultValues()', function ( test ) {
 });
 
 Tinytest.add('setupInitValues()', function ( test ) {
-	
+
 	var testClient = new Client();
 
 	var theDefaultItems = Client.constructorDefaults().typeStructure[0];
@@ -692,7 +733,7 @@ Tinytest.add('setupInitValues()', function ( test ) {
 });
 
 Tinytest.add('setType()', function ( test ) {
-	
+
 	var testPerson = new Person();
 
 	var typeKey = 'child';
@@ -703,7 +744,7 @@ Tinytest.add('setType()', function ( test ) {
 });
 
 Tinytest.add('setType() - throw error when trying to set a type which is not defined', function ( test ) {
-	
+
 	var testClient = new Client();
 
 	test.throws(function () {
@@ -717,7 +758,7 @@ Tinytest.add('setType() - throw error when trying to set a type which is not de
 });
 
 Tinytest.add('getType()', function ( test ) {
-	
+
 	var testClient = new Client();
 	var defaultType = Client.constructorDefaults().typeStructure[0].type;
 	test.equal( testClient.getType(), defaultType );
@@ -775,7 +816,7 @@ Tinytest.add('Global fields - setting (and overwriting) global default values fo
 	test.equal( dog.getReactiveValue('lifeExpectancyInYears'), 10 );
 	test.equal( duck.getReactiveValue('lifeExpectancyInYears'), 10 );
 	test.equal( amoeba.getReactiveValue('lifeExpectancyInYears'), 0.1 );
-	
+
 });
 
 Tinytest.add('getTypeNames()', function( test ) {
@@ -889,11 +930,3 @@ Tinytest.add('Plugins - Override setReactiveValue', function(test) {
 	test.equal( testPerson.getReactiveValue('name'), newName+overrideValue );
 
 });
-
-
-
-
-
-
-
-

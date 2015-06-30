@@ -8,7 +8,8 @@ Person = new ReactiveConstructor('Person', function () {
         title: String,
         birthDate: Date,
         age: Number,
-        children: [ Person ]
+        children: [ Person ],
+        happy: Boolean
       },
       defaultData: {
         name: 'Kristoffer Klintberg',
@@ -56,7 +57,7 @@ Person = new ReactiveConstructor('Person', function () {
         }
       }
     }]
-  }; 
+  };
 });
 
 
