@@ -377,7 +377,7 @@ Tinytest.add('setReactiveValueWithTypecasting()', function( test ) {
 
 	testPerson.setReactiveValueWithTypecasting('birthDate', '1971 january 1' );
 
-	test.equal( testPerson.getReactiveValue('birthDate'), new Date('1971 january 1') );
+	test.equal( testPerson.getReactiveValue('birthDate').valueOf(), new Date('1971 january 1').valueOf() );
 
 	testPerson.setReactiveValueWithTypecasting('happy', 'true' );
 
