@@ -383,6 +383,22 @@ Tinytest.add('setReactiveValueWithTypecasting()', function( test ) {
 
 	test.equal( testPerson.getReactiveValue('happy'), true );
 
+	testPerson.setReactiveValueWithTypecasting('happy', 'false' );
+
+	test.equal( testPerson.getReactiveValue('happy'), false );
+
+	testPerson.setReactiveValue('happy', true );
+
+	testPerson.setReactiveValueWithTypecasting('happy', '0' );
+
+	test.equal( testPerson.getReactiveValue('happy'), false );
+
+	testPerson.setReactiveValue('happy', true );
+
+	testPerson.setReactiveValueWithTypecasting('happy', 0 );
+
+	test.equal( testPerson.getReactiveValue('happy'), false );
+
 	testPerson.setReactiveValueWithTypecasting('name', 123456 );
 
 	test.equal( testPerson.getReactiveValue('name'), '123456' );

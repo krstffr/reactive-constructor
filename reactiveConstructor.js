@@ -160,8 +160,11 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		if ( instance.getCurrentTypeStructure()[ key ] === String )
 			value = String( value );
 
-		if ( instance.getCurrentTypeStructure()[ key ] === Boolean )
+		if ( instance.getCurrentTypeStructure()[ key ] === Boolean ) {
+			if (Match.test( value, String ))
+				value = (value !== 'false' && value !== '0');
 			value = Boolean( value );
+		}
 
 		return instance.setReactiveValue( key, value );
 
