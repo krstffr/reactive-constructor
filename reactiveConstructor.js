@@ -158,10 +158,10 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			value = new Date( value );
 
 		if ( instance.getCurrentTypeStructure()[ key ] === String )
-			value = new String( value ).valueOf();
+			value = String( value );
 
 		if ( instance.getCurrentTypeStructure()[ key ] === Boolean )
-			value = new Boolean( value ).valueOf();
+			value = Boolean( value );
 
 		return instance.setReactiveValue( key, value );
 
