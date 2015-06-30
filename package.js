@@ -1,7 +1,7 @@
 Package.describe({
 	name: "krstffr:reactive-constructor",
   summary: "Create reactive objects from these constructors.",
-	version: "1.1.0-alpha-11"
+	version: "1.1.0"
 });
 
 Package.onUse(function (api) {
@@ -29,12 +29,12 @@ Package.onUse(function (api) {
 });
 
 Package.on_test(function (api) {
-  
+
   api.use(["tinytest", "krstffr:reactive-constructor"], "client");
 
   api.addFiles("tests/reactiveConstructorTestConstructors.js", "client");
   api.export(["Person", "Client", "Invoice", "InvoiceListItem"], "client");
-  
+
   api.addFiles("tests/reactiveConstructorTests.js", "client");
 
 });

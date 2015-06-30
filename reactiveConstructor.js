@@ -56,13 +56,13 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			reactiveObject[ methodName ] = method;
 		});
 	};
-	
+
 	passedConstructor.prototype.getGlobalMethods = function() {
-		
+
 		var defaults = passedConstructor.constructorDefaults();
 
 		check( defaults, Object );
-		
+
 		// See if there are any default methods passed
 		if (!defaults.globalValues ||
 			!defaults.globalValues.methods)
@@ -73,7 +73,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	};
 
-	// Method for getting all custom methods of this 
+	// Method for getting all custom methods of this
 	passedConstructor.prototype.getCurrentTypeMethods = function () {
 		return _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: this.getType() }).methods;
 	};
@@ -84,7 +84,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		var instance = this;
 
 		var globalFields = {};
-		
+
 		// Get the fields specific for this type
 		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: instance.getType() }).fields || {};
 		check( typeFields, Object );
@@ -143,6 +143,30 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	};
 
+	// Method for setting the value of a reactive item, with typecasting
+	// Supported types: Number, Date, String, Boolean
+	passedConstructor.prototype.setReactiveValueWithTypecasting = function ( key, value ) {
+
+		check( key, String );
+
+		var instance = this;
+
+		if ( instance.getCurrentTypeStructure()[ key ] === Number )
+			value = parseFloat( value, 10 );
+
+		if ( instance.getCurrentTypeStructure()[ key ] === Date )
+			value = new Date( value );
+
+		if ( instance.getCurrentTypeStructure()[ key ] === String )
+			value = new String( value ).valueOf();
+
+		if ( instance.getCurrentTypeStructure()[ key ] === Boolean )
+			value = new Boolean( value ).valueOf();
+
+		return instance.setReactiveValue( key, value );
+
+	};
+
 	// Method for setting the value of a reactive item.
 	passedConstructor.prototype.setReactiveValue = function ( key, value ) {
 
@@ -153,7 +177,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			// Make sure the passed value has the correct type
 			if (!instance.checkReactiveValueType( key, value ))
 				throw new Meteor.Error('reactiveData-wrong-type', 'Error');
-			
+
 			// Get all the data
 			var reactiveData = instance.reactiveData.get();
 
@@ -163,7 +187,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			// Check the entire stucture of the data about to be set
 			if ( !instance.checkReactiveValues( reactiveData ) )
 				throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
-			
+
 			// Set the reactive var to the new data
 			instance.reactiveData.set( reactiveData );
 
@@ -214,7 +238,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		var args = [ key, passedValue, ordinaryMethod ];
 
 		return this.getPluginOverrides('checkReactiveValueType', args );
-		
+
 	};
 
 	// This method allows plugins to override a "native" (ordinary) method.
@@ -382,7 +406,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	};
 
 	// Method for returning the default values for the type, as defined in the
-	// constructor function. If there are global default sets, return those as well 
+	// constructor function. If there are global default sets, return those as well
 	// (however they will be overwritten by the type specific data)
 	passedConstructor.prototype.getDefaultValues = function () {
 		// Get the default data specific for this type
@@ -398,7 +422,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	// the user has passed. The initValues will be constructed from
 	// the typeStructure the user has set for this type.
 	passedConstructor.prototype.setupInitValues = function ( initValues ) {
-		
+
 		// Create a "bare" value from the type structure.
 		// For example: a String will return "", a Number will return 0
 		// and an array will return [].
@@ -436,9 +460,9 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	// TODO: This needs to be handled in a cleaner way probably!
 	passedConstructor.prototype.setType = function ( initData ) {
-		
+
 		var typeValue = (initData && initData[ typeKey ]) ? initData[ typeKey ] : passedConstructor.constructorDefaults().typeStructure[0].type;
-		
+
 		// Make sure it's a string!
 		check(typeValue, String );
 
@@ -467,13 +491,13 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			return false;
 
 		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
-			
+
 			// Run initInstance method on this instance
 			if ( Match.test( RCPlugin.options.initInstance, Function ) )
 				instance = RCPlugin.options.initInstance( instance );
 
 		});
-		
+
 	};
 
 	// Method for running plugins' init methods on CONSTRUCTOR
@@ -483,15 +507,15 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			return false;
 
 		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
-			
+
 			// Run all plugin initConstructor on constructor
 			if ( Match.test( RCPlugin.options.initConstructor, Function ) )
 				passedConstructor = RCPlugin.options.initConstructor( passedConstructor );
-			
+
 		});
 
 		return passedConstructor;
-		
+
 	};
 
 	// Method for stripping any fields from the initData object
@@ -502,13 +526,13 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 
 	// Method for initiating the ReactiveConstructor.
-	passedConstructor.prototype.initReactiveValues = function ( initData ) {	
+	passedConstructor.prototype.initReactiveValues = function ( initData ) {
 
 		var ordinaryMethod = function( instance, initData ) {
 
 			// Setup the type of this constructor
 			instance.setType( initData );
-			
+
 			// Remove the type key!
 			// TODO: This needs to be handled in a cleaner way probably!
 			if (initData && initData[ typeKey ])
@@ -546,7 +570,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	// Init all plugins on this constructor
 	passedConstructor = initPluginsOnConstructor( passedConstructor );
-	
+
 	return passedConstructor;
 
 };
