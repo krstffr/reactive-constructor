@@ -1,7 +1,7 @@
 Package.describe({
 	name: "krstffr:reactive-constructor",
   summary: "Create reactive objects from these constructors.",
-	version: "1.1.1"
+	version: "1.2.0"
 });
 
 Package.onUse(function (api) {
@@ -9,7 +9,7 @@ Package.onUse(function (api) {
 	api.versionsFrom("METEOR@0.9.0");
 
 	api.use([
-    "stevezhu:lodash@1.0.2",
+    "stevezhu:lodash@3.10.1",
     "reactive-var@1.0.4",
     "check@1.0.0"], "client");
 
