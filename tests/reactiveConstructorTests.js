@@ -804,12 +804,15 @@ Tinytest.add('getParentData()', function( test ) {
 		]
 	});
 
-	var grandChild = personWithChildren.getReactiveValue('children')[0].getReactiveValue('children')[0];
+	var child = personWithChildren.getReactiveValue('children')[0];
+	var grandChild = child.getReactiveValue('children')[0];
 	
 	test.equal( grandChild.getParentData(0), false );
 	test.equal( grandChild.getParentData(10), false );
 	test.equal( grandChild.getParentData(1).getReactiveValue('name'), 'Papa' );
 	test.equal( grandChild.getParentData(2).getReactiveValue('name'), 'Grandpa' );
+	test.equal( grandChild.getParentData(2).getReactiveValue('name'), child.getParentData(1).getReactiveValue('name') );
+	test.equal( grandChild.getParentData(1).getReactiveValue('name'), child.getReactiveValue('name') );
 
 });
 
