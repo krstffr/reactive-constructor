@@ -207,9 +207,44 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	// Get the value of the reactive data from key
 	passedConstructor.prototype.getReactiveValue = function ( key ) {
+		
 		if (!this.reactiveData)
 			return false;
-		return this.reactiveData.get()[key];
+
+		var value = this.reactiveData.get()[key];
+
+		var instance = this;
+
+		// If the fetched value is itself a reactive constructor instance, add it's parent
+		// to the value to return (so we can use the parent in the child if needed…)
+		if ( value && value.getReactiveValue && Match.test( value.getReactiveValue, Function ) )
+			value.parentInstance = instance;
+
+		// If it is an array of reactive constructor instances, add the parent to all of them
+		if ( value && value[0] && Match.test( value, Array ) && value[0].getReactiveValue && Match.test( value[0].getReactiveValue, Function ) )
+			value = _.map( value, function( listInstance ) { listInstance.parentInstance = instance; return listInstance; });
+
+		return value;
+
+	};
+
+	// Method for getting an instances parent context (if there is one!)
+	passedConstructor.prototype.getParentData = function ( levels ) {
+		
+		check( levels, Number );
+
+		// Make sure there is a parent at all, and that the number passed is > 0
+		if (!this.parentInstance || levels < 1)
+			return false;
+
+		// Iterate over "levels" number of parentInstances, return false
+		// if none is found.
+		return _.reduce( _.range(levels), function( memo ){
+			if (!memo)
+				return false;
+			return memo.parentInstance || false;
+		}, this );
+
 	};
 
 	// Method for getting the constructor for the passed key

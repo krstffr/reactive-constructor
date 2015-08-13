@@ -1,0 +1,31 @@
+<head>
+  <title>Example 2, not a very good example.</title>
+</head>
+
+<body>
+
+  {{> testTemplate }}
+
+</body>
+
+<template name="testTemplate">
+
+	<h1>Reactive Constructor demo</h1>
+
+	<h4>
+		Test app which mainly is about getting the parent context of instances.
+	</h4>
+
+	{{#with childInstance }}
+
+		Name: {{ getReactiveValue 'name' }}
+		<br />
+		Parent name: {{ parentInstance.getReactiveValue 'name' }}
+		<br />
+		Grand parent: {{ parentInstance.parentInstance.getReactiveValue 'name' }}
+		<br />
+		Super old grand parent: {{ parentInstance.parentInstance.parentInstance.getReactiveValue 'name' }}
+
+	{{/with}}
+	
+</template>

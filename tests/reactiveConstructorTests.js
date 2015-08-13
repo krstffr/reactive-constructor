@@ -792,6 +792,30 @@ Tinytest.add('getType()', function ( test ) {
 
 });
 
+Tinytest.add('getParentData()', function( test ) {
+
+	var personWithChildren = new Person({
+		name: 'Grandpa',
+		children: [
+			new Person({
+				name: 'Papa',
+				children: [ new Person({ name: 'Baby' }) ]
+			})
+		]
+	});
+
+	var child = personWithChildren.getReactiveValue('children')[0];
+	var grandChild = child.getReactiveValue('children')[0];
+	
+	test.equal( grandChild.getParentData(0), false );
+	test.equal( grandChild.getParentData(10), false );
+	test.equal( grandChild.getParentData(1).getReactiveValue('name'), 'Papa' );
+	test.equal( grandChild.getParentData(2).getReactiveValue('name'), 'Grandpa' );
+	test.equal( grandChild.getParentData(2).getReactiveValue('name'), child.getParentData(1).getReactiveValue('name') );
+	test.equal( grandChild.getParentData(1).getReactiveValue('name'), child.getReactiveValue('name') );
+
+});
+
 Tinytest.add('duplicate constructor name should throw errer', function( test ) {
 	// There is already a Person constructor defined, so this should trow an error
 	test.throws(function() {
