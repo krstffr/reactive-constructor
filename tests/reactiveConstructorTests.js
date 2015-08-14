@@ -531,33 +531,6 @@ Tinytest.add('getReactiveValue()', function ( test ) {
 		test.equal( testInvoice.getReactiveValue( key ), value );
 	});
 
-	var invoiceName = testInvoice.getReactiveValue('invoiceName');
-
-	test.equal( invoiceName, 'old name!' );
-
-	testInvoice.setReactiveValue('invoiceName', 'new name!');
-
-	test.equal( invoiceName, 'new name!' );
-
-	var items = testInvoice.getReactiveValue('items');
-	test.equal( items.length, 2 );
-
-	testInvoice.setReactiveValue('items', [
-		new InvoiceListItem(),
-		new InvoiceListItem(),
-		new InvoiceListItem()
-		]);
-	test.equal( items.length, 3 );
-
-	testInvoice.setReactiveValue('items', [
-		new InvoiceListItem(),
-		new InvoiceListItem(),
-		new InvoiceListItem(),
-		new InvoiceListItem()
-		]);
-
-	test.equal( items.length, 4 );
-
 });
 
 Tinytest.add('unsetReactiveValue()', function( test ) {
@@ -996,13 +969,5 @@ Tinytest.add('Plugins - Override setReactiveValue', function(test) {
 	var newName = 'New name';
 
 	testPerson.setReactiveValue('name', newName);
-
-	test.equal( testPerson.getReactiveValue('name'), newName+overrideValue );
-
-	test.equal( buddies.length, 2 );
-
-	testPerson.setReactiveValue('buddies', [ new Person(), new Person(), new Person() ]);
-
-	test.equal( buddies.length, 3 );
 
 });
