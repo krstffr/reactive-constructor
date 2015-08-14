@@ -530,6 +530,16 @@ Tinytest.add('getReactiveValue()', function ( test ) {
 		test.equal( testInvoice.getReactiveValue( key ), value );
 	});
 
+	var items = testInvoice.getReactiveValue('items');
+	test.equal( items.length, 2 );
+	items.push( new InvoiceListItem() );
+	testInvoice.setReactiveValue('items', items );
+	test.equal( items.length, 3 );
+	items.push( new InvoiceListItem() );
+	items.push( new InvoiceListItem() );
+	testInvoice.setReactiveValue('items', items );
+	test.equal( items.length, 5 );
+
 });
 
 Tinytest.add('unsetReactiveValue()', function( test ) {
