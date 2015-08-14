@@ -1,7 +1,7 @@
 Package.describe({
 	name: "krstffr:reactive-constructor",
   summary: "Create reactive objects from these constructors.",
-	version: "1.2.1"
+	version: "1.2.2"
 });
 
 Package.onUse(function (api) {
@@ -10,8 +10,8 @@ Package.onUse(function (api) {
 
 	api.use([
     "stevezhu:lodash@3.10.1",
-    "reactive-var@1.0.4",
-    "check@1.0.0"], "client");
+    "reactive-var@1.0.5",
+    "check@1.0.5"], "client");
 
   api.addFiles([
     "ie9-type-check-monkey-patch.js",
