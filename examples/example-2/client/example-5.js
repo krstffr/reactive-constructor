@@ -22,23 +22,24 @@ var grandParentInstance = new Person({
       })
     })
   }),
-  friends: [ new Person({ name: 'Friend' })]
+  friends: [ new Person({ name: 'Friend 1' }), new Person({ name: 'Friend 2' })]
 });
 
 var childInstance = grandParentInstance.getReactiveValue('child').getReactiveValue('child').getReactiveValue('child');
 
 var testTemplate = Template.testTemplate;
-var friend = grandParentInstance.getReactiveValue('friends')[0];
-
-console.log( childInstance.getParentData(2).getReactiveValue('name') );
-console.log( childInstance.getParentData(3).getReactiveValue('name') );
-console.log( childInstance.getParentData(3) );
-console.log( childInstance.getParentData(10) );
-
-console.log( friend.getParentData(1) );
 
 testTemplate.helpers({
   childInstance: function() {
     return childInstance;
+  }
+});
+
+testTemplate.events({
+  'click .add-friend': function () {
+    var friends = this.getReactiveValue('friends');
+    var newFriend = new Person({ name: 'Friend ' + (friends.length+1) });
+    friends.push( newFriend );
+    return this.setReactiveValue('friends', friends );
   }
 });

@@ -26,6 +26,19 @@
 		<br />
 		Super old grand parent: {{ parentInstance.parentInstance.parentInstance.getReactiveValue 'name' }}
 
+		<hr>
+
+		{{#with getParentData 3 }}
+
+			Super olds name again: <strong>{{ getReactiveValue 'name' }}</strong><br />
+			His friends: |
+			{{#each getReactiveValue 'friends' }}
+			<strong>{{ getReactiveValue 'name'}}</strong> |
+			{{/each}}<br />
+			<button class="add-friend">Add friend</button>
+
+		{{/with}}
+
 	{{/with}}
 	
 </template>
