@@ -133,6 +133,7 @@ Tinytest.add('Various constructors - Init constructors with some params', functi
 
 });
 
+// HMM, What is this for??
 Tinytest.add('Various constructors - Init constructors with params + parms which are not part of defined structure', function ( test ) {
 
 	var setValues = {
@@ -517,7 +518,7 @@ Tinytest.add('setReactiveValue() - wrong type should throw errors', function ( t
 Tinytest.add('getReactiveValue()', function ( test ) {
 
 	var initValues = {
-		invoiceName: 'new name!',
+		invoiceName: 'old name!',
 		currency: 'US $ Dollars',
 		client: new Client(),
 		items: [ new InvoiceListItem(), new InvoiceListItem() ],
@@ -530,15 +531,32 @@ Tinytest.add('getReactiveValue()', function ( test ) {
 		test.equal( testInvoice.getReactiveValue( key ), value );
 	});
 
+	var invoiceName = testInvoice.getReactiveValue('invoiceName');
+
+	test.equal( invoiceName, 'old name!' );
+
+	testInvoice.setReactiveValue('invoiceName', 'new name!');
+
+	test.equal( invoiceName, 'new name!' );
+
 	var items = testInvoice.getReactiveValue('items');
 	test.equal( items.length, 2 );
-	items.push( new InvoiceListItem() );
-	testInvoice.setReactiveValue('items', items );
+
+	testInvoice.setReactiveValue('items', [
+		new InvoiceListItem(),
+		new InvoiceListItem(),
+		new InvoiceListItem()
+		]);
 	test.equal( items.length, 3 );
-	items.push( new InvoiceListItem() );
-	items.push( new InvoiceListItem() );
-	testInvoice.setReactiveValue('items', items );
-	test.equal( items.length, 5 );
+
+	testInvoice.setReactiveValue('items', [
+		new InvoiceListItem(),
+		new InvoiceListItem(),
+		new InvoiceListItem(),
+		new InvoiceListItem()
+		]);
+
+	test.equal( items.length, 4 );
 
 });
 
@@ -967,16 +985,24 @@ Tinytest.add('Plugins - Override setReactiveValue', function(test) {
 	var overrideValue = ' overridden!';
 
 	TestPlugin.setReactiveValue = function( instance, key, value, ordMethod ) {
-		value += overrideValue;
+		if ( Match.test( value, String) )
+			value += overrideValue;
 		return ordMethod( instance, key, value );
 	};
 
-	var testPerson = new Person();
+	var testPerson = new Person({ rcType: 'husband', buddies: [{}, {}]});
+	var buddies = testPerson.getReactiveValue('buddies');
 
 	var newName = 'New name';
 
 	testPerson.setReactiveValue('name', newName);
 
 	test.equal( testPerson.getReactiveValue('name'), newName+overrideValue );
+
+	test.equal( buddies.length, 2 );
+
+	testPerson.setReactiveValue('buddies', [ new Person(), new Person(), new Person() ]);
+
+	test.equal( buddies.length, 3 );
 
 });

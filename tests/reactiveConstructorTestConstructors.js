@@ -27,6 +27,7 @@ Person = new ReactiveConstructor('Person', function () {
     }, {
       type: 'husband',
       fields: {
+        name: String,
         wife: Person,
         buddies: [ Person ]
       }
