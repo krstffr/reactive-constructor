@@ -361,6 +361,30 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	};
 
+	// Method for preparing data from a reactive object
+	// to an ordinary JS object
+	var prepareValueToJSObject = function ( value ) {
+
+		// We do not want the parentInstance key to be returned
+		// since it can cause a stack overflow (especially if some
+		// EJSON method or something starts checking stuff here)
+		if (value && value.parentInstance)
+			value = _.clone( _.omit(value, 'parentInstance') );
+
+		// Does the value have the getDataAsObject method?
+		// Then it's a reactiveConstructor instance, recurse!
+		if ( value && Match.test( value.getDataAsObject, Function ) )
+			return value.getDataAsObject();
+
+		// Is it an array of items?
+		if ( Match.test( value, Array ) )
+			return _.map( value, prepareValueToJSObject );
+
+		// Return the value
+		return value;
+
+	};
+
 	// Method for returning the entire object as only the reactive
 	// data, with no nested types with methods and stuff.
 	passedConstructor.prototype.getDataAsObject = function () {
@@ -368,26 +392,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		// Map over the reactive data object
 		var dataToReturn = _.assign({ rcType: this.getType() }, this.reactiveData.get() );
 
-		return _.mapValues(dataToReturn, function ( value ) {
-
-			// Does the value have this method? Then it's a reactiveConstructor instance, recurse!
-			if ( value && Match.test( value.getDataAsObject, Function ) )
-				value = value.getDataAsObject();
-
-			// Is it an array of items?
-			if ( Match.test( value, Array ) ) {
-				value = _.map( value, function( arrayVal ) {
-					// Does the value have this method? Then it's "one of us", recurse!
-					if ( Match.test( arrayVal.getDataAsObject, Function ) )
-						return arrayVal.getDataAsObject();
-					return arrayVal;
-				});
-			}
-
-			// Return the value
-			return value;
-
-		});
+		return _.mapValues( dataToReturn, prepareValueToJSObject );
 
 	};
 
