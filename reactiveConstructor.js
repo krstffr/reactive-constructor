@@ -61,7 +61,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 		var defaults = passedConstructor.constructorDefaults();
 
-		check( defaults, Object );
+		// check( defaults, Object );
 
 		// See if there are any default methods passed
 		if (!defaults.globalValues ||
@@ -87,13 +87,10 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 		// Get the fields specific for this type
 		var typeFields = _.findWhere( passedConstructor.constructorDefaults().typeStructure, { type: instance.getType() }).fields || {};
-		check( typeFields, Object );
 
 		// If there are no global fields, just return the type specific fields
 		if (passedConstructor.constructorDefaults().globalValues && passedConstructor.constructorDefaults().globalValues.fields)
 			globalFields = passedConstructor.constructorDefaults().globalValues.fields;
-
-		check( globalFields, Object );
 
 		// A plugin might have added some fields, add those as well to the mix
 		var pluginTypeFields = _.reduce(ReactiveConstructorPlugins, function( memo, plugin ){
@@ -102,11 +99,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			return memo;
 		}, {});
 
-		check( pluginTypeFields, Object );
-
 		var validPluginTypeFields = instance.getValidTypeStructureFieldsFromPlugins();
-
-		check( pluginTypeFields, Object );
 
 		// Else combine the fields and return all of them
 		return _.assign( globalFields, typeFields, pluginTypeFields, validPluginTypeFields );
@@ -147,7 +140,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	// Supported types: Number, Date, String, Boolean
 	passedConstructor.prototype.setReactiveValueWithTypecasting = function ( key, value ) {
 
-		check( key, String );
+		// check( key, String );
 
 		var instance = this;
 
@@ -161,7 +154,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			value = String( value );
 
 		if ( instance.getCurrentTypeStructure()[ key ] === Boolean ) {
-			if (Match.test( value, String ))
+			if ( value && ( value.constructor === String ))
 				value = (value !== 'false' && value !== '0');
 			value = Boolean( value );
 		}
@@ -188,8 +181,9 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			reactiveData[ key ] = value;
 
 			// Check the entire stucture of the data about to be set
-			if ( !instance.checkReactiveValues( reactiveData ) )
-				throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
+			// Is this really needed?
+			// if ( !instance.checkReactiveValues( reactiveData ) )
+			// 	throw new Meteor.Error('reactiveData-wrong-structure', 'Error');
 
 			// Set the reactive var to the new data
 			instance.reactiveData.set( reactiveData );
@@ -217,11 +211,11 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 		// If the fetched value is itself a reactive constructor instance, add it's parent
 		// to the value to return (so we can use the parent in the child if needed…)
-		if ( value && value.getReactiveValue && Match.test( value.getReactiveValue, Function ) )
+		if ( value && value.getReactiveValue && ( value.getReactiveValue.constructor === Function ) )
 			value.parentInstance = instance;
 
 		// If it is an array of reactive constructor instances, add the parent to all of them
-		if ( value && value[0] && Match.test( value, Array ) && value[0].getReactiveValue && Match.test( value[0].getReactiveValue, Function ) )
+		if ( value && value[0] && ( value.constructor === Array ) && value[0].getReactiveValue && ( value[0].getReactiveValue.constructor === Function ) )
 			value = _.map( value, function( listInstance ) { listInstance.parentInstance = instance; return listInstance; });
 
 		return value;
@@ -231,7 +225,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	// Method for getting an instances parent context (if there is one!)
 	passedConstructor.prototype.getParentData = function ( levels ) {
 		
-		check( levels, Number );
+		// check( levels, Number );
 
 		// Make sure there is a parent at all, and that the number passed is > 0
 		if (!this.parentInstance || levels < 1)
@@ -250,7 +244,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	// Method for getting the constructor for the passed key
 	passedConstructor.prototype.getConstructorOfKey = function( key ) {
 		var constructor = this.getCurrentTypeStructure()[ key ];
-		if ( Match.test( constructor, Array ) )
+		if ( constructor.constructor === Array )
 			return constructor[0];
 		return constructor;
 	};
@@ -268,7 +262,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		var instance = this;
 
 		var ordinaryMethod = function( key, passedValue ) {
-			check( key, String );
+			// check( key, String );
 			check( passedValue, instance.getCurrentTypeStructure()[ key ] );
 			return true;
 		};
@@ -286,6 +280,9 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		// The ordinary method MUST be provided as the last item
 		var ordinaryMethod = _.last(args);
 
+		if (ReactiveConstructorPlugins.length < 1)
+			return ordinaryMethod.apply( this, _.initial( args ) );
+
 		check( methodName, String );
 		check( ordinaryMethod, Function );
 
@@ -294,7 +291,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 			// Get all plugins which have this method.
 			var pluginsWithChecks = _.filter( ReactiveConstructorPlugins, function(plugin){
-				return Match.test( plugin[ methodName ], Function );
+				return ( plugin[ methodName ] && plugin[ methodName ].constructor === Function );
 			});
 
 			// If there are none, just return the ordinary method
@@ -314,8 +311,6 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			return true;
 
 		}
-
-		return ordinaryMethod.apply( this, _.initial( args ) );
 
 	};
 
@@ -337,19 +332,31 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			// Also: only check against the currentTypeStructure keys,
 			// meaning that objects can also have additional fields which
 			// have been set elsewhere. (For example: in a DB.)
-			var keysToCheck  = _.chain( dataToCheck )
-			.map( function( value, key ){
-				if (value === undefined || !currentTypeStructure[key])
-					return false;
-				return key;
-			})
-			.compact()
-			.value();
+			// var keysToCheck  = _.chain( dataToCheck )
+			// .map( function( value, key ){
+			// 	if (value === undefined || !currentTypeStructure[key])
+			// 		return false;
+			// 	return key;
+			// })
+			// .compact()
+			// .value();
 
-			check(
-				_.pick( dataToCheck, keysToCheck ),
-				_.pick( currentTypeStructure, keysToCheck )
-				);
+			// console.log( _.pick( dataToCheck, keysToCheck ) );
+			var noTypeErrors = _.every( dataToCheck, function ( value, key ) {
+				if (value === 0)
+					return value.constructor === currentTypeStructure[ key ];
+				if (!value || !currentTypeStructure[ key ])
+					return true;
+				if ( value.constructor === Array ){
+					if (!value[0])
+						return true;
+					return value[0].constructor === currentTypeStructure[ key ][0];
+				}
+				return value.constructor === currentTypeStructure[ key ];
+			});
+
+			if (!noTypeErrors)
+				throw new Meteor.Error('write-error-message!');
 
 			return true;
 
@@ -373,11 +380,11 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 		// Does the value have the getDataAsObject method?
 		// Then it's a reactiveConstructor instance, recurse!
-		if ( value && Match.test( value.getDataAsObject, Function ) )
+		if ( value && ( value.getDataAsObject && value.getDataAsObject.constructor === Function ) )
 			return value.getDataAsObject();
 
 		// Is it an array of items?
-		if ( Match.test( value, Array ) )
+		if ( value && ( value.constructor === Array ) )
 			return _.map( value, prepareValueToJSObject );
 
 		// Return the value
@@ -413,12 +420,13 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 				// Is it an array?
 				// Iterate this method over every field
-				if ( Match.test( value, Array ) ) {
+				// if ( Match.test( value, Array ) ) {
+				if ( value && value.constructor === Array ) {
 					return _.map( value, function ( arrayVal ) {
 						// Is it a "plain" object? Then transform it into a non-plain
 						// from the type provided in the typeStructure!
 						// Else just return the current array value
-						if ( Match.test( arrayVal, Object ) && ReactiveConstructors[ valueType[0].constructorName ] )
+						if ( ( arrayVal.constructor === Object ) && ReactiveConstructors[ valueType[0].constructorName ] )
 							return new ReactiveConstructors[ valueType[0].constructorName ]( arrayVal );
 						return arrayVal;
 					});
@@ -426,12 +434,14 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 				// Is it a "plain" object? Then transform it into a non-plain
 				// from the type provided in the typeStructure!
-				if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.constructorName ] )
+				// if ( Match.test( value, Object ) && valueType && ReactiveConstructors[ valueType.constructorName ] )
+				if ( ( value && value.constructor === Object ) && valueType && ReactiveConstructors[ valueType.constructorName ] )
 					return new ReactiveConstructors[ valueType.constructorName ]( value );
 
 				// If the value is a string, and there is a window object with this name,
 				// create a new instance from it!
-				if ( Match.test( value, String ) && valueType && window[ valueType.name ] )
+				// if ( Match.test( value, String ) && valueType && window[ valueType.name ] )
+				if ( ( value && value.constructor === String ) && valueType && window[ valueType.name ] )
 					return new window[ valueType.name ]( value );
 
 				return value;
@@ -473,7 +483,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		var bareValues = _.mapValues( this.getCurrentTypeStructure(), function ( val ) {
 
 			// For arrays: return an empty array
-			if ( Match.test( val, Array ) )
+			if ( ( val && val.constructor === Array ) )
 				return [];
 
 			// If it is not a String, Number or Boolean, return nothing.
@@ -487,7 +497,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 			// Is there a valueOf method? If so: return the value of this method.
 			// For example: new String().valueOf() will return "".
-			if ( Match.test( initVal.valueOf, Function ) )
+			if ( ( initVal.valueOf.constructor === Function ) )
 				return initVal.valueOf();
 
 			// If there is not, something is wrong!
@@ -536,7 +546,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
 
 			// Run initInstance method on this instance
-			if ( Match.test( RCPlugin.options.initInstance, Function ) )
+			if ( ( RCPlugin.options.initInstance.constructor === Function ) )
 				instance = RCPlugin.options.initInstance( instance );
 
 		});
@@ -552,7 +562,7 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		_.each(ReactiveConstructorPlugins, function( RCPlugin ){
 
 			// Run all plugin initConstructor on constructor
-			if ( Match.test( RCPlugin.options.initConstructor, Function ) )
+			if ( ( RCPlugin.options.initConstructor.constructor === Function ) )
 				passedConstructor = RCPlugin.options.initConstructor( passedConstructor );
 
 		});
@@ -560,13 +570,6 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 		return passedConstructor;
 
 	};
-
-	// Method for stripping any fields from the initData object
-	// which are not part of the type structure
-	passedConstructor.prototype.removeAdditionalDataFields = function( data ) {
-		return _.pick( data, _.keys( this.getCurrentTypeStructure() ) );
-	};
-
 
 	// Method for initiating the ReactiveConstructor.
 	passedConstructor.prototype.initReactiveValues = function ( initData ) {
@@ -580,9 +583,6 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			// TODO: This needs to be handled in a cleaner way probably!
 			if (initData && initData[ typeKey ])
 				delete initData[ typeKey ];
-
-			// Remove any fields which are not part of the type structure
-			initData = instance.removeAdditionalDataFields( initData );
 
 			// Setup the init data, setting default data and bare data
 			// (Strings should be set to "" and numbers to 0 if no default or init value is set)

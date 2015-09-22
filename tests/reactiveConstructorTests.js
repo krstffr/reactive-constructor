@@ -9,7 +9,7 @@ Tinytest.add('exported objects', function ( test ) {
 Tinytest.add('Person - Init constructors without params', function ( test ) {
 
 	var defaultData = Person.constructorDefaults().typeStructure[0].defaultData;
-	var defaultDataKeys = _( defaultData ).keys();
+	var defaultDataKeys = _.keys( defaultData );
 	var testPerson = new Person();
 
 	_.each(defaultDataKeys, function( key ){
@@ -28,7 +28,7 @@ Tinytest.add('Person - Init constructors without params', function ( test ) {
 Tinytest.add('Invoice - Init constructors without params', function ( test ) {
 
 	var defaultData = Invoice.constructorDefaults().typeStructure[0].defaultData;
-	var defaultDataKeys = _( defaultData ).keys();
+	var defaultDataKeys = _.keys( defaultData );
 	var testInvoice = new Invoice();
 
 	_.each(defaultDataKeys, function( key ){
@@ -56,7 +56,7 @@ Tinytest.add('Various constructors - Init constructors with some params', functi
 		]
 	};
 
-	var setKeys = _( setValues ).keys();
+	var setKeys = _.keys( setValues );
 
 	// The invoice with the set values
 	var testInvoice = new Invoice( setValues );
@@ -741,11 +741,11 @@ Tinytest.add('setupInitValues()', function ( test ) {
 
 	var theDefaultItems = Client.constructorDefaults().typeStructure[0];
 
-	var defaultItemsLength = _( theDefaultItems.defaultData ).keys().length;
+	var defaultItemsLength = _.keys( theDefaultItems.defaultData ).length;
 
 	test.notEqual( testClient.setupInitValues(), theDefaultItems.defaultData );
-	test.notEqual( _( testClient.setupInitValues() ).keys().length, defaultItemsLength );
-	test.isTrue( _( testClient.setupInitValues() ).keys().length > defaultItemsLength );
+	test.notEqual( _.keys( testClient.setupInitValues() ).length, defaultItemsLength );
+	test.isTrue( _.keys( testClient.setupInitValues() ).length > defaultItemsLength );
 
 });
 
