@@ -30,7 +30,7 @@ Package.onUse(function (api) {
 
 Package.on_test(function (api) {
 
-  api.use(["tinytest", "krstffr:reactive-constructor"], "client");
+  api.use(["tinytest", "krstffr:reactive-constructor", "stevezhu:lodash@3.10.1", "check@1.0.5"], "client");
 
   api.addFiles("tests/reactiveConstructorTestConstructors.js", "client");
   api.export(["Person", "Client", "Invoice", "InvoiceListItem"], "client");
