@@ -4,11 +4,17 @@
     "basePackages": {
       "krstffr:reactive-constructor": {
         "path": "../.."
+      },
+      "krstffr:reactive-constructor-cms": {
+        "path": "../../../reactive-constructor-cms"
       }
     },
     "packages": {
       "krstffr:reactive-constructor": {
         "path": "../.."
+      },
+      "krstffr:reactive-constructor-cms": {
+        "path": "../../../reactive-constructor-cms"
       }
     }
   }

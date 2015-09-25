@@ -574,6 +574,12 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 	// Method for initiating the ReactiveConstructor.
 	passedConstructor.prototype.initReactiveValues = function ( initData ) {
 
+		// Check if the initData is in face an instance of a ReactiveConstructor!
+		// For example, like this: new Person( new Person() );
+		// In those cases, we should get the actual data instead.
+		if (initData && initData.constructor === passedConstructor)
+			initData = initData.getDataAsObject();
+
 		var ordinaryMethod = function( instance, initData ) {
 
 			// Setup the type of this constructor
