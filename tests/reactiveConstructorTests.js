@@ -934,6 +934,19 @@ Tinytest.add('getConstructorNameOfKey()', function(test) {
 
 });
 
+Tinytest.add('init ReactiveConstructor instance from ReactiveConstructor instance', function( test ) {
+
+	var name = 'svenne';
+	var weirdName = 'werido';
+	var person = new Person({ name: name });
+	var personFromInstance = new Person( person );
+	var weirdPerson = new Person( new Person( new Person( new Person({ name: weirdName }) ) ) );
+
+	test.equal( personFromInstance.getReactiveValue('name'), name );
+	test.equal( weirdPerson.getReactiveValue('name'), weirdName );
+
+});
+
 var TestPlugin;
 
 Tinytest.add('Plugins - Init new plugin', function(test) {
@@ -964,10 +977,10 @@ Tinytest.add('Plugins - Override setReactiveValue', function(test) {
 	};
 
 	var testPerson = new Person({ rcType: 'husband', buddies: [{}, {}]});
-	var buddies = testPerson.getReactiveValue('buddies');
 
 	var newName = 'New name';
 
 	testPerson.setReactiveValue('name', newName);
+	test.equal( testPerson.getReactiveValue('name'), newName + overrideValue );
 
 });
