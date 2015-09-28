@@ -984,3 +984,88 @@ Tinytest.add('Plugins - Override setReactiveValue', function(test) {
 	test.equal( testPerson.getReactiveValue('name'), newName + overrideValue );
 
 });
+
+Tinytest.add('Dynamically add types - add type', test => {
+
+	var newPersonType = {
+		type: 'personEvolved',
+		fields: {
+			name:        String,
+			phoneNumber: Number,
+			daddy:       Person
+		}
+	};
+
+	Person.addType( newPersonType );
+
+	var newPersonTypeInstance = new Person({
+		rcType: 'personEvolved',
+		phoneNumber: 987654321,
+		daddy: new Person({
+			rcType: 'personEvolved',
+			phoneNumber: 123456789
+		})
+	});
+
+	test.equal( newPersonTypeInstance
+		.getReactiveValue('daddy')
+		.getReactiveValue('phoneNumber'), 123456789 );
+
+	test.equal( newPersonTypeInstance
+		.getReactiveValue('phoneNumber'), 987654321 );
+
+	// Make sure we can still create the old types of persons
+	var oldPersonTypeInstance = new Person({
+		rcType: 'ranger',
+		favouritePet: new Animal({
+			rcType: 'dog'
+		})
+	});
+
+	var anotherOldPersonTypeInstance = new Person({
+		rcType: 'worker',
+		age: 55
+	});
+
+	test.equal( oldPersonTypeInstance.getReactiveValue('favouritePet').howl(), 'AAUUUIIII' );
+	test.equal( anotherOldPersonTypeInstance.getReactiveValue('age'), 55 );
+
+});
+
+Tinytest.add('Dynamically add types - overwrite type', test => {
+
+	// Make sure the type we've added is there
+	test.isTrue( _.contains( Person.getTypeNames(), 'personEvolved' ) );
+
+	var overwrittePersonType = {
+		type: 'personEvolved',
+		fields: {
+			name:        String,
+			mommy:       Person
+		}
+	};
+
+	Person.addType( overwrittePersonType );
+
+	var newPersonTypeInstance = new Person({
+		rcType: 'personEvolved',
+		daddy: new Person({ name: 'Not supported!' }),
+		phoneNumber: 555,
+		mommy: new Person({ name: 'Cool mum!'})
+	});
+
+	test.equal( newPersonTypeInstance.getReactiveValue('phoneNumber'), undefined );
+	test.equal( newPersonTypeInstance.getReactiveValue('daddy'), undefined );
+	test.equal( newPersonTypeInstance.getReactiveValue('mommy').getReactiveValue('name'), 'Cool mum!' );
+
+	// Make sure we can still create the old types of persons
+	var oldPersonTypeInstance = new Person({
+		rcType: 'ranger',
+		favouritePet: new Animal({
+			rcType: 'dog'
+		})
+	});
+
+	test.equal( oldPersonTypeInstance.getReactiveValue('favouritePet').howl(), 'AAUUUIIII' );
+
+});

@@ -33,6 +33,26 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	ReactiveConstructors[ constructorName ] = passedConstructor;
 
+	passedConstructor.addType = function( newTypeStructure ) {
+		
+		// Get the current typeStructure
+		var constructorDefaults = passedConstructor.constructorDefaults();
+
+		// If there is a current typeStructure of this type, remove it!
+		constructorDefaults.typeStructure = _.reject(constructorDefaults.typeStructure, function( structure ){
+			return structure.type === newTypeStructure.type;
+		});
+
+		// Add the new type
+		constructorDefaults.typeStructure.push( newTypeStructure );
+
+		// Update the constructorDefaults method
+		passedConstructor.constructorDefaults = function() {
+			return constructorDefaults;
+		};
+
+	};
+
 	if (Meteor.isServer){
 
 		// Add this method since it's still being called (on server as well)
@@ -571,6 +591,12 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 
 	};
 
+	// Method for stripping any fields from the initData object
+	// which are not part of the type structure
+	passedConstructor.prototype.removeAdditionalDataFields = function( data ) {
+		return _.pick( data, _.keys( this.getCurrentTypeStructure() ) );
+	};
+
 	// Method for initiating the ReactiveConstructor.
 	passedConstructor.prototype.initReactiveValues = function ( initData ) {
 
@@ -589,6 +615,9 @@ ReactiveConstructor = function( constructorName, constructorDefaults ) {
 			// TODO: This needs to be handled in a cleaner way probably!
 			if (initData && initData[ typeKey ])
 				delete initData[ typeKey ];
+
+			// Remove any fields which are not part of the type structure
+			initData = instance.removeAdditionalDataFields( initData );
 
 			// Setup the init data, setting default data and bare data
 			// (Strings should be set to "" and numbers to 0 if no default or init value is set)
